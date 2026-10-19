@@ -191,9 +191,9 @@ save_fig(function(mode) {
   b <- ggplot(filter(loco, model == "Random forest"),
               aes(y = reorder(city, AUC_seen))) +
     geom_segment(aes(x = AUC_unseen, xend = AUC_seen, yend = city), colour = p$grid, linewidth = 2) +
-    geom_point(aes(x = AUC_seen, colour = "Trained on this city"), size = 3) +
-    geom_point(aes(x = AUC_unseen, colour = "City never seen"), size = 3) +
-    scale_colour_manual(values = c(`Trained on this city` = p$amber, `City never seen` = p$blue), name = NULL) +
+    geom_point(aes(x = AUC_seen, colour = "Seen in training"), size = 3) +
+    geom_point(aes(x = AUC_unseen, colour = "Unseen city"), size = 3) +
+    scale_colour_manual(values = c(`Seen in training` = p$amber, `Unseen city` = p$blue), name = NULL) +
     labs(x = "AUC (random forest, +1 day)", y = NULL, subtitle = "Leave-one-city-out transfer") +
     theme_b40(mode) + theme(legend.position = "bottom")
   a + b + plot_layout(widths = c(1.15, 1))
