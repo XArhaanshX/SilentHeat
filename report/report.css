@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap');
+body { font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+       max-width: 920px; margin: 0 auto; padding: 32px 24px 64px; color: #161616;
+       line-height: 1.6; background: #fff; }
+h1, h2, h3, .title { font-family: Poppins, "Segoe UI", sans-serif; font-weight: 400;
+                     letter-spacing: 0.01em; }
+h1.title, .frontmatter .title { font-size: 2.1rem; text-transform: uppercase; line-height: 1.2; }
+h2 { margin-top: 2.4em; padding-bottom: 0.2em; border-bottom: 1px solid #e3e3e3; }
+.author, .date { color: #555; }
+img { max-width: 100%; display: block; margin: 18px auto 4px; }
+em { color: #444; }
+table { border-collapse: collapse; width: 100%; font-size: 0.84rem; margin: 14px 0 20px;
+        display: block; overflow-x: auto; }
+th { text-align: left; border-bottom: 2px solid #222; padding: 6px 8px; font-weight: 600; }
+td { border-bottom: 1px solid #e6e6e6; padding: 5px 8px; }
+code, pre { font-size: 0.82rem; }
+pre { background: #f6f6f4; padding: 12px; border-radius: 6px; overflow-x: auto; }
+#TOC { background: #fafaf8; border: 1px solid #eee; padding: 8px 18px; border-radius: 6px; }
+@media print { body { max-width: none; padding: 0 8mm; } h2 { break-after: avoid; }
+               img, table { break-inside: avoid; } }

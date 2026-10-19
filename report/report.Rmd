@@ -1,0 +1,292 @@
+---
+title: "Beyond 40 °C: Quantifying the Humid-Heat Blind Spot in India's Heatwave Warnings"
+author: "Arhaansh Jhingan (25BCE0541) · Probability & Statistics Lab · VIT Vellore"
+date: "October 2026"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+Sys.setenv(B40_HOME = normalizePath(".."))
+source(file.path("..", "R", "00_setup.R"))
+T_ <- function(n) read.csv(path("outputs", "tables", paste0(n, ".csv")))
+pc <- function(x, d = 1) paste0(formatC(100 * x, format = "f", digits = d), "%")
+f2 <- function(x, d = 2) formatC(x, format = "f", digits = d)
+kt <- function(df, digits = 3, ...) knitr::kable(df, digits = digits, format = "pipe", row.names = FALSE, ...)
+fig <- function(name) knitr::include_graphics(path("outputs", "figures", "report", paste0(name, ".png")))
+
+daily  <- readRDS(path("data", "processed", "daily.rds"))
+pooled <- readRDS(path("outputs", "tables", "blind_spot_pooled.rds"))
+blind  <- T_("blind_spot_by_city"); sens <- T_("blind_spot_sensitivity")
+cnt    <- T_("trend_count_models"); slope <- T_("trend_nb_slope_test")
+gev    <- T_("gev_parameters");     rl <- T_("gev_return_levels")
+mkv    <- T_("markov_chain");       mc <- T_("markov_monte_carlo")
+skill  <- T_("early_warning_skill"); ops <- T_("early_warning_operating_points")
+orat   <- T_("early_warning_odds_ratios"); corr <- T_("correlation_tmax_rh")
+reg    <- T_("regression_wetbulb_drivers"); val <- T_("wetbulb_validation")
+anv    <- T_("anova_city_decade"); tk <- T_("anova_tukey_decade"); asm <- T_("anova_assumptions")
+w <- pooled$wilson
+nb <- cnt[cnt$model == "Negative binomial", ]
+che <- gev[gev$city == "Chennai", ]; kol <- gev[gev$city == "Kolkata", ]
+lg <- skill[skill$model == "Logistic model", ]; imdsk <- skill[skill$model == "IMD-rule state", ]
+```
+
+## Abstract
+
+India declares a heatwave only when the **dry-bulb** temperature crosses a fixed threshold: 40 °C on the plains or 37 °C on the coast, together with a 4.5 °C departure from normal. That declaration is what activates city and state Heat Action Plans. But the body's ability to shed heat is governed by **humid heat**, measured by the wet-bulb temperature (Tw). We built a fully reproducible R pipeline over `r format(nrow(daily), big.mark = ",")` city-days of ERA5 reanalysis (10 Indian cities, 1981–2025). It applies the official IMD rule day by day and audits it against a physiological humid-heat criterion (daily maximum Tw ≥ 29 °C).
+
+Of the **`r pooled$n_danger` dangerous humid-heat days** we found, **`r pooled$n_silent` (`r pc(pooled$miss_rate)`, Wilson 95% CI `r pc(w$lo)`–`r pc(w$hi)`) were never IMD heatwave days**. Agreement between the two definitions is essentially zero (Cohen's κ `r f2(min(blind$kappa, na.rm = TRUE))`–`r f2(max(blind$kappa, na.rm = TRUE))`). The miss rate is statistically the same across cities and between coastal and plains rules. It stays at 96–99% for every threshold we tried, including each city's own 95th/99th percentile. Meanwhile, danger days are increasing by **`r pc(nb$IRR_per_decade - 1, 0)` per decade** (negative-binomial IRR `r f2(nb$IRR_per_decade)`, 95% CI `r f2(nb$IRR_lo)`–`r f2(nb$IRR_hi)`). Under a non-stationary GEV model, Chennai's 1-in-50-year humid-heat extreme of 1985 is now a **1-in-`r f2(che$return_period_now, 1)`-year** event. A simple logistic early-warning model gives a calibrated next-day probability with AUC `r f2(lg$AUC)`, against `r f2(imdsk$AUC)` for the IMD rule's state. All analysis, figures, this report and an interactive Shiny dashboard are produced in R.
+
+## 1. The gap
+
+**In practice.** IMD's heatwave criteria are dry-bulb only. A 2023 Centre for Policy Research review of 37 Heat Action Plans across 18 states found that only 10 set locally defined thresholds. It also found that plans focus on dry heat and largely ignore humid heat and warm nights. IMD does publish an *experimental* Heat Index (NOAA-style, colour-coded green/yellow/orange/red), but it is guidance only. It does not trigger the heatwave declaration, and it gives no probabilities or return periods.
+
+**In the physiology.** Laboratory work (Vecellio et al., 2022) puts the critical wet-bulb limit for young, healthy adults in warm-humid air at about 30–31 °C, well below the theoretical 35 °C. Observational work (Raymond et al., 2020) shows that extreme humid heat has more than doubled in frequency since 1979.
+
+**The unanswered question.** How much physiologically dangerous humid heat falls outside India's official heatwave rule? Is that blind spot growing, and can probability modelling close it?
+
+| Research question | Statistical tools (all in R) |
+|---|---|
+| **RQ1** What share of dangerous humid-heat days does the IMD rule miss? | Wilson / exact / year-block bootstrap CIs, Beta–Binomial posterior, χ² / Fisher, McNemar, Cohen's κ, two-proportion test |
+| **RQ2** Are danger days becoming more frequent? | Mann–Kendall + Sen's slope (own code), Poisson vs negative-binomial GLM, Wilcoxon, Welch t, KS, permutation test, two-way ANOVA + Tukey, Friedman |
+| **RQ3** How extreme can humid heat get, and is the tail shifting? | GEV maximum likelihood (own optimiser code), Gumbel LRT, delta-method + parametric bootstrap return levels, non-stationary GEV |
+| **RQ4** Do dangerous days cluster into spells? | Two-state Markov chain, χ² / G² dependence tests, geometric spell law, Monte Carlo simulation |
+| **RQ5** Can we warn a day ahead, with honest probabilities? | Logistic regression, temporal hold-out, Brier skill, ROC/AUC (DeLong), reliability diagram |
+
+## 2. Data
+
+Daily ERA5 reanalysis (0.25°) was downloaded from the Open-Meteo archive API by `R/01_fetch_data.R`. The window is 1 Jan 1981 to 31 Dec 2025 for ten cities: seven judged by IMD's plains rule (Delhi, Lucknow, Ahmedabad, Nagpur, Kolkata, Bhubaneswar, Vellore) and three by the coastal rule (Chennai, Mumbai, Visakhapatnam). Variables: daily max/min temperature, daily max/mean wet-bulb temperature, and daily min/mean relative humidity. The dataset has no missing values.
+
+*Physics check.* We recomputed wet-bulb temperature independently from (Tmax, RHmin) with Stull's (2011) formula. It correlates with ERA5's daily maximum Tw at r = `r f2(min(val$r))`–`r f2(max(val$r))` in every city (mean offset `r f2(mean(val$mean_diff))` °C), so the humid-heat signal is physically consistent.
+
+*Climatological normal.* IMD judges departures from a station's normal. We estimate each city's normal Tmax over the WMO 1991–2020 base period with a 3-harmonic regression, $T_{max} = \beta_0 + \sum_{k=1}^{3} [a_k \sin(2\pi k\,d/365.25) + b_k \cos(2\pi k\,d/365.25)]$, with R² = `r f2(min(T_("normal_model_fit")$r_squared))`–`r f2(max(T_("normal_model_fit")$r_squared))`.
+
+*The IMD rule as coded.* Plains: Tmax ≥ 40 °C and departure ≥ 4.5 °C, or Tmax ≥ 45 °C. Coastal: Tmax ≥ 37 °C and departure ≥ 4.5 °C. Either way, the condition must hold on ≥ 2 consecutive days. We use one grid cell rather than IMD's two stations per subdivision, which makes our version **more generous to IMD**. Every miss rate below is therefore a conservative lower bound.
+
+## 3. Exploratory analysis: why a dry-bulb rule cannot see humid heat
+
+```{r}
+fig("fig_blindspot_scatter")
+```
+
+*Figure 1.* Each dot is a city-day (March–September). IMD heatwave days (blue) live in the hot-dry corner. Dangerous humid-heat days (orange) sit along the 29 °C wet-bulb isotherm at 32–39 °C and 40–70% humidity, a region the dry-bulb rule never enters. Only `r pooled$imd_days_humid` of `r pooled$imd_days` IMD heatwave days were also humid-danger days.
+
+Temperature and humidity are strongly **negatively** correlated on hot-season days in every city (Pearson r from `r f2(min(corr$pearson_r))` to `r f2(max(corr$pearson_r))`, all p < 0.001; Spearman agrees). In other words, the hottest days are the driest days, so a threshold on temperature alone systematically selects dry heat. A multiple regression of daily max Tw on Tmax and RHmin (R² `r f2(min(reg$r_squared))`–`r f2(max(reg$r_squared))`) shows that +10 percentage points of humidity raises Tw by `r f2(min(reg$b_rh10), 1)`–`r f2(max(reg$b_rh10), 1)` °C at fixed temperature. In standardised terms, humidity is as important a driver as temperature.
+
+```{r}
+kt(T_("descriptive_stats")[, c("city", "imd_category", "mean_tmax", "mean_twmax", "sd_twmax", "max_twmax", "skew_twmax", "danger_days_per_yr", "imd_hw_days_per_yr", "silent_days_per_yr")], digits = 2,
+   col.names = c("City", "IMD rule", "Mean Tmax", "Mean Tw max", "SD Tw max", "Max Tw", "Skew", "Danger d/yr", "IMD HW d/yr", "Silent d/yr"))
+```
+
+*Table 1.* Descriptive statistics, March–September 1981–2025 (°C; d/yr = days per year).
+
+```{r}
+fig("fig_season_calendar")
+```
+
+*Figure 2.* Probability of each event by calendar week. The IMD heatwave season (north and central India, April–June) and the humid-danger season (east coast and Kolkata, May–July) barely overlap.
+
+```{r}
+fig("fig_wetbulb_ridges")
+```
+
+*Figure 3.* April–June distribution of daily maximum wet-bulb temperature. The distributions are left-skewed (skewness −0.4 to −1.9), with coastal and eastern cities pressed against the danger line.
+
+## 4. Which probability model fits?
+
+```{r}
+cf <- T_("dist_fit_continuous")
+kt(cf[cf$city %in% c("Chennai", "Delhi", "Kolkata"), c("city", "distribution", "loglik", "AIC", "delta_AIC", "KS", "AD")], digits = 3,
+   col.names = c("City", "Distribution", "log L", "AIC", "ΔAIC", "KS D", "Anderson–Darling"))
+```
+
+*Table 2.* Maximum-likelihood fits to daily max Tw in May (`fitdistrplus`). No single family wins everywhere, and the Anderson–Darling statistics stay large. The bulk fits miss the tail that matters for health, which is why we model extremes directly with extreme-value theory (Section 7).
+
+```{r}
+fig("fig_distribution_fits")
+```
+
+*Figure 4.* Histograms with fitted Normal, Gamma and Weibull densities, plus Normal Q–Q plots. Departures are concentrated in the tails.
+
+For the **annual count of danger days**, the variance exceeds the mean by a factor of `r f2(min(T_("dist_fit_counts")$var_to_mean), 1)`–`r f2(max(T_("dist_fit_counts")$var_to_mean), 1)`. The dispersion test rejects the Poisson model in every city (p < 0.001), and a negative binomial is preferred by AIC and by a boundary-corrected likelihood-ratio test. We therefore use the negative binomial for trend inference.
+
+```{r}
+dc <- T_("dist_fit_counts"); dc$dispersion_p <- fmt_p(dc$dispersion_p); dc$LRT_p <- fmt_p(dc$LRT_p)
+kt(dc[, c("city", "mean", "variance", "var_to_mean", "dispersion_p", "AIC_poisson", "AIC_negbin", "LRT_p")], digits = 2,
+   col.names = c("City", "Mean", "Variance", "Var/mean", "Dispersion p", "AIC Poisson", "AIC NegBin", "LRT p"))
+```
+
+## 5. RQ1: The blind spot
+
+```{r}
+fig("fig_miss_rate")
+```
+
+*Figure 5.* Share of danger days that were not IMD heatwave days, with 95% year-block bootstrap intervals. Whole years are resampled to respect day-to-day dependence.
+
+```{r}
+b <- blind[!is.na(blind$miss_rate), ]
+kt(data.frame(City = b$city, `Danger days` = b$danger_days, Missed = b$silent,
+              `Miss rate` = pc(b$miss_rate), `Wilson 95% CI` = paste(pc(b$wilson_lo), "–", pc(b$wilson_hi)),
+              `Bootstrap 95% CI` = paste(pc(b$boot_lo), "–", pc(b$boot_hi)),
+              `Bayes 95% CrI` = paste(pc(b$bayes_lo), "–", pc(b$bayes_hi)),
+              `Cohen κ` = f2(b$kappa, 3), `McNemar p` = fmt_p(b$mcnemar_p),
+              `HI ≥ orange` = pc(b$hi_orange_capture, 0), check.names = FALSE))
+```
+
+*Table 3.* Cities with at least 10 danger days. The Bayesian column uses a Beta(1,1) prior, giving a Beta(1 + missed, 1 + caught) posterior. "HI ≥ orange" is the share of danger days on which IMD's own experimental Heat Index reached orange or red.
+
+* **Pooled:** `r pooled$n_silent` of `r pooled$n_danger` danger days were missed (`r pc(pooled$miss_rate)`).
+* **Agreement:** Cohen's κ is close to 0 everywhere, so the two definitions measure *different hazards*. McNemar's test confirms that the disagreement is systematic (p < 0.05 in every city).
+* **Homogeneity:** a χ² test of equal miss rates across cities (Monte Carlo p = `r f2(pooled$homogeneity$p.value, 2)`) and a two-proportion test of coastal vs plains (p = `r f2(pooled$coastal_vs_plains$p.value, 2)`) find no difference. The blind spot is a property of the rule, not of one region.
+* **Robustness:** the pooled miss rate is `r paste(pc(pooled$sensitivity_pooled$miss_rate, 0), collapse = ", ")` for thresholds `r paste(pooled$sensitivity_pooled$threshold, collapse = ", ")` respectively (Figure 6).
+* **The fix is within reach:** IMD's own experimental Heat Index was orange or red on `r pc(pooled$hi_orange_capture, 0)` of the missed days. A humidity-aware index already exists; it simply does not drive the declaration.
+
+```{r}
+fig("fig_sensitivity")
+```
+
+*Figure 6.* Miss rate under absolute and city-specific (local percentile) definitions of a dangerous day.
+
+```{r}
+fig("fig_days_per_year")
+```
+
+*Figure 7.* Average days per year. In Kolkata, Bhubaneswar, Visakhapatnam and Chennai, silent danger days outnumber official heatwave days.
+
+## 6. RQ2: Is it getting worse?
+
+```{r}
+fig("fig_trend_counts")
+```
+
+*Figure 8.* Annual danger days with per-city negative-binomial trend lines and Mann–Kendall p-values. The test is our own tie-corrected implementation, cross-checked against base R's `cor.test(method = "kendall")`. Because most years have zero danger days, the Theil–Sen median slope is often exactly 0 even when the trend is significant. Sen slopes are therefore reported in `trend_mann_kendall.csv`, and the count model is used for effect sizes.
+
+* **Count regression:** in a negative-binomial GLM with city fixed effects, danger days rise by a factor of **`r f2(nb$IRR_per_decade)` per decade** (95% CI `r f2(nb$IRR_lo)`–`r f2(nb$IRR_hi)`, p = `r fmt_p(nb$p_value)`). The Poisson model is badly overdispersed (Pearson dispersion `r f2(cnt$pearson_dispersion[1], 1)`; LRT p < 0.001).
+* **Coastal vs plains:** fitting separate slopes, the increase is `r f2(slope$IRR_coastal)`× per decade on the coast and `r f2(slope$IRR_plains)`× on the plains The coastal slope is steeper, but the difference is not significant (LRT for a common slope, p = `r f2(slope$p_value, 2)`).
+* **Two-way ANOVA** of April–June mean Tw on city and decade: decade F = `r f2(anv$F.value[2], 1)`, p = `r fmt_p(anv$Pr..F.[2])`. Tukey HSD puts 2021–25 at **+`r f2(tk$diff[4])` °C** above 1981–90 (95% CI `r f2(tk$lwr[4])`–`r f2(tk$upr[4])`). Residuals are mildly non-normal (Shapiro–Wilk p = `r fmt_p(asm$p_value[1])`) and heteroscedastic (Bartlett p = `r fmt_p(asm$p_value[2])`), so we confirmed the decade effect with the distribution-free **Friedman test**, blocking on city: p = `r fmt_p(asm$p_value[3])`. A pooled Kruskal–Wallis test that ignores the city blocks is not significant (p = `r f2(asm$p_value[4], 2)`). That is a useful lesson in itself: between-city differences dwarf the decade signal unless the design accounts for them.
+
+```{r}
+fig("fig_decade_means")
+```
+
+```{r}
+ec <- T_("trend_era_comparison"); for (v in c("perm_p", "welch_p", "ks_p")) ec[[v]] <- fmt_p(ec[[v]])
+kt(ec[, c("city", "danger_days_1981_2000", "danger_days_2006_2025", "perm_p", "amj_tw_1981_2000", "amj_tw_2006_2025", "welch_p", "ks_p")], digits = 3,
+   col.names = c("City", "Danger d/yr 1981–2000", "Danger d/yr 2006–2025", "Permutation p", "AMJ Tw 1981–2000", "AMJ Tw 2006–2025", "Welch p", "KS p"))
+```
+
+*Table 4.* Early vs recent era. The permutation test uses 10,000 relabellings of years. The KS test compares the full daily April–June distributions.
+
+## 7. RQ3: Extremes and return levels (GEV)
+
+For each city we fit the Generalised Extreme Value distribution to the 45 annual maxima of daily max Tw by maximising
+
+$$\ell(\mu,\sigma,\xi) = -n\log\sigma - (1+1/\xi)\sum_i \log y_i - \sum_i y_i^{-1/\xi},\quad y_i = 1+\xi\frac{z_i-\mu}{\sigma}$$
+
+with our own `optim`-based code (`fit_gev()` in `R/00_setup.R`). Our estimates match `evd::fgev` to every printed digit. Return levels $z_T = \mu - \frac{\sigma}{\xi}\left[1-\{-\log(1-1/T)\}^{-\xi}\right]$ get delta-method and parametric-bootstrap (500 refits) intervals. A non-stationary model with $\mu(t) = \mu_0 + \mu_1 t$ (t in decades) is tested against the stationary one by a likelihood-ratio test.
+
+```{r}
+fig("fig_return_levels")
+```
+
+*Figure 9.* Return-level curves with 95% delta-method bands and observed annual maxima.
+
+```{r}
+g <- gev
+kt(data.frame(City = g$city, `μ` = f2(g$mu), `σ` = f2(g$sigma), `ξ (SE)` = paste0(f2(g$xi), " (", f2(g$xi_se), ")"),
+              `50-yr level` = f2(rl$level[rl$T == 50]),
+              `Bootstrap 95% CI` = paste(f2(rl$boot_lo[rl$T == 50]), "–", f2(rl$boot_hi[rl$T == 50])),
+              `Trend °C/decade` = f2(g$ns_mu1_per_decade), `Trend LRT p` = fmt_p(g$trend_p),
+              `1985's 50-yr event is now 1-in` = f2(g$return_period_now, 1), check.names = FALSE))
+```
+
+*Table 5.* GEV parameters, 50-year return levels and the non-stationary shift.
+
+The location of the humid-heat extreme distribution is rising significantly (LRT p < 0.05) in `r sum(gev$trend_p < 0.05)` of 10 cities. **Chennai's** shift is `r f2(che$ns_mu1_per_decade)` °C per decade, so the annual maximum that was a 1-in-50-year event in 1985 is now expected about **once every `r f2(che$return_period_now, 1)` years**. For **Kolkata** the figure is once every `r f2(kol$return_period_now, 1)` years. Under the trend model, the chance that Kolkata sees at least one ≥ 31 °C wet-bulb day in 2026–2035 is `r pc(kol$p_critical_any_2026_35_trend, 0)`.
+
+```{r}
+fig("fig_gev_diagnostics_chennai")
+```
+
+*Figure 10.* GEV probability and quantile plots for Chennai. Points lie close to the diagonal.
+
+## 8. RQ4: Spells — a Markov chain view
+
+Within each city's 61-day peak humid season, we model the day-to-day state (calm/danger) as a first-order, two-state Markov chain. For example, in Kolkata P(danger | danger yesterday) = `r f2(mkv$p11[mkv$city == "Kolkata"])`, while P(danger | calm yesterday) = `r f2(mkv$p01[mkv$city == "Kolkata"])`. Independence of consecutive days is decisively rejected in every city (χ² and G² p < 0.001; persistence odds ratios `r round(min(mkv$odds_ratio_persistence))`–`r round(max(mkv$odds_ratio_persistence))`).
+
+The chain implies geometrically distributed spell lengths with mean 1/(1 − p₁₁). That matches the observed means (`r paste(f2(mkv$mean_spell_obs), collapse = ", ")` vs `r paste(f2(mkv$mean_spell_geom), collapse = ", ")` days), and a χ² goodness-of-fit test does not reject the geometric law (p = `r paste(f2(mkv$geom_gof_p), collapse = ", ")`). The chain's stationary probability also reproduces the observed danger frequency almost exactly.
+
+```{r}
+fig("fig_spell_lengths")
+```
+
+```{r}
+fig("fig_markov_montecarlo")
+```
+
+*Figure 11.* Monte Carlo (10,000 simulated seasons per era) using chains estimated separately for 1981–2000 and 2006–2025. In Chennai, the chance of a ≥ 3-day danger spell in a season rose from `r pc(mc$p_longest_ge3[mc$city == "Chennai" & mc$era == "1981–2000"], 0)` to `r pc(mc$p_longest_ge3[mc$city == "Chennai" & mc$era == "2006–2025"], 0)`. In Kolkata it rose from `r pc(mc$p_longest_ge3[mc$city == "Kolkata" & mc$era == "1981–2000"], 0)` to `r pc(mc$p_longest_ge3[mc$city == "Kolkata" & mc$era == "2006–2025"], 0)`.
+
+## 9. RQ5: A probabilistic early warning
+
+We fit a logistic regression for P(danger tomorrow) on 1981–2014 and test it on the unseen years 2015–2025. Predictors are today's max wet-bulb, its day-on-day change, Tmax, RHmin, Tmin, a decadal trend, and a city-specific seasonal cycle. It is compared with three baselines: climatology (seasonal base rate), persistence (P(tomorrow | today)), and the IMD-rule state (P(tomorrow | IMD heatwave today)).
+
+```{r}
+kt(skill, digits = 3, col.names = c("Model", "Brier", "Brier skill vs climatology", "Log-loss", "AUC", "AUC lo", "AUC hi"))
+```
+
+*Table 6.* Test-period skill. The AUC confidence intervals use the DeLong method. The logistic model beats persistence (DeLong Z = `r f2(T_("early_warning_delong")$Z, 1)`, p < 0.001).
+
+```{r}
+fig("fig_early_warning")
+```
+
+*Figure 12.* ROC curves and the reliability diagram (Wilson 95% intervals). Points near the diagonal mean the probabilities can be taken at face value.
+
+```{r}
+kt(ops, digits = 3, col.names = c("Warning rule", "Hits", "False alarms", "Misses", "POD", "FAR", "CSI"))
+```
+
+*Table 7.* Used as a warning, "IMD heatwave today" detects only `r pc(ops$POD[1], 0)` of next-day danger days. Each +1 °C of today's wet-bulb multiplies the odds of danger tomorrow by `r f2(orat$odds_ratio[1], 1)` (95% CI `r f2(orat$OR_lo[1], 1)`–`r f2(orat$OR_hi[1], 1)`).
+
+## 10. Discussion and recommendations
+
+1. **Add a humid-heat trigger to heatwave declarations.** A wet-bulb or heat-index criterion would capture the ~96% of dangerous days the dry-bulb rule misses. IMD's experimental Heat Index already flagged `r pc(pooled$hi_orange_capture, 0)` of them.
+2. **Use local, probabilistic thresholds.** City-specific return levels (Table 5) and next-day probabilities (Section 9) turn a binary rule into a risk statement that a Heat Action Plan can act on.
+3. **Prioritise the east coast and Gangetic West Bengal.** Kolkata, Bhubaneswar, Visakhapatnam and Chennai carry the largest silent burden, and danger days there are rising fastest.
+
+**Limitations.** ERA5's 0.25° grid smooths local extremes and under-represents peak wet-bulb values (only `r pooled$n_critical` grid-days reached 31 °C). Mumbai's grid cell is strongly sea-moderated. Station data would raise every count, but the dry/humid separation is structural, not an artefact. We approximate IMD's two-station rule with one grid cell, which flatters IMD. Physiological thresholds come from studies of young, healthy adults, so risk for older or outdoor-working people starts lower. Daily dependence is handled with year-block resampling and Markov models, but some p-values from day-level tests remain approximate. GEV trend extrapolation beyond 2025 assumes the recent trend continues.
+
+## 11. Conclusion
+
+India's official heatwave rule and physiologically dangerous humid heat describe almost disjoint sets of days. Using a full probability-and-statistics workflow in R (distribution fitting, hypothesis tests, confidence and credible intervals, count regression, extreme-value theory, Markov chains, Monte Carlo and logistic forecasting), we showed three things. The blind spot is large (~96%), uniform across cities, robust to definitions, and growing. And it is fixable with a probabilistic, humidity-aware early warning.
+
+## Reproducibility
+
+```
+Rscript run_all.R                     # download → analysis → figures → this report
+Rscript -e 'shiny::runApp("app")'     # interactive dashboard
+```
+
+R `r getRversion()`; packages: dplyr, tidyr, ggplot2, patchwork, ggridges, scales, jsonlite, fitdistrplus, MASS, evd, pROC, shiny, bslib, knitr, markdown. The core statistical routines (GEV likelihood and return levels, Mann–Kendall/Sen, Wilson interval, Cohen's κ, Markov chain estimation and simulation, block bootstrap, permutation test, Stull wet-bulb, NWS heat index) are implemented from first principles in `R/00_setup.R` and the module scripts.
+
+## References
+
+1. India Meteorological Department. *Criteria for heat wave and cold wave* (heat-wave bulletin definitions).
+2. Pillai, A. V., & Dalmia, T. (2023). *How is India adapting to heatwaves? An assessment of heat action plans with insights for transformative climate action.* Centre for Policy Research, New Delhi.
+3. Vecellio, D. J., Wolf, S. T., Cottle, R. M., & Kenney, W. L. (2022). Evaluating the 35 °C wet-bulb temperature adaptability threshold for young, healthy subjects (PSU HEAT Project). *Journal of Applied Physiology*, 132(2), 340–345.
+4. Raymond, C., Matthews, T., & Horton, R. M. (2020). The emergence of heat and humidity too severe for human tolerance. *Science Advances*, 6(19), eaaw1838.
+5. Stull, R. (2011). Wet-bulb temperature from relative humidity and air temperature. *Journal of Applied Meteorology and Climatology*, 50(11), 2267–2269.
+6. Rothfusz, L. P. (1990). *The heat index equation.* NWS Southern Region Technical Attachment SR 90-23.
+7. Coles, S. (2001). *An Introduction to Statistical Modeling of Extreme Values.* Springer.
+8. Hersbach, H., et al. (2020). The ERA5 global reanalysis. *Quarterly Journal of the Royal Meteorological Society*, 146, 1999–2049. Accessed via Open-Meteo (Zippenfeld, 2023), CC BY 4.0.
+9. Sen, P. K. (1968). Estimates of the regression coefficient based on Kendall's tau. *JASA*, 63, 1379–1389; Mann, H. B. (1945). Nonparametric tests against trend. *Econometrica*, 13, 245–259.
+10. DeLong, E. R., DeLong, D. M., & Clarke-Pearson, D. L. (1988). Comparing the areas under two or more correlated ROC curves. *Biometrics*, 44, 837–845.
+
+## Appendix: core R implementations
+
+```{r, echo=TRUE, eval=FALSE, code=readLines(path("R", "00_setup.R"))[grep("^mann_kendall", readLines(path("R", "00_setup.R"))):(grep("^# ---- Generalised", readLines(path("R", "00_setup.R"))) - 2)]}
+```
+
+```{r, echo=TRUE, eval=FALSE, code=readLines(path("R", "00_setup.R"))[grep("^gev_nll", readLines(path("R", "00_setup.R"))):(grep("^# ---- Two-state", readLines(path("R", "00_setup.R"))) - 2)]}
+```
