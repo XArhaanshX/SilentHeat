@@ -1,5 +1,5 @@
 ---
-title: "Beyond 40 °C: Quantifying the Humid-Heat Blind Spot in India's Heatwave Warnings"
+title: "SilentHeat: Quantifying the Humid-Heat Blind Spot in India's Heatwave Warnings"
 author: "Arhaansh Jhingan (25BCE0541) · Probability & Statistics Lab · VIT Vellore"
 date: "October 2026"
 output: html_document
