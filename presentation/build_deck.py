@@ -97,6 +97,21 @@ for r in contfit:
         best_counts[r["distribution"]] = best_counts.get(r["distribution"], 0) + 1
 vtm = [float(r["var_to_mean"]) for r in cntfit]
 
+mls = read("ml_skill_by_lead")
+mlh = read("ml_hybrid_alerts")
+mli = read("ml_rf_importance")
+loco = read("ml_loco_transfer")
+rf1 = row(mls, lead_days="1", model="Random forest")
+lr1 = row(mls, lead_days="1", model="Logistic")
+rf3 = row(mls, lead_days="3", model="Random forest")
+clim3 = row(mls, lead_days="3", model="Climatology")
+hyb = row(mlh, lead_days="1", rule="Hybrid: IMD + RF")
+imd_h = row(mlh, lead_days="1", rule="IMD rule alone")
+head_rank = [r["feature"] for r in mli].index("headroom") + 1
+rf_loco = [r for r in loco if r["model"] == "Random forest"]
+loco_seen = sum(float(r["AUC_seen"]) for r in rf_loco) / len(rf_loco)
+loco_unseen = sum(float(r["AUC_unseen"]) for r in rf_loco) / len(rf_loco)
+
 # ---- Helpers -----------------------------------------------------------------
 prs = Presentation()
 prs.slide_width, prs.slide_height = Inches(SW), Inches(SH)
@@ -327,7 +342,7 @@ arrow_list(s, 6.3, 2.8, 6.75, [
 # 5. Our project / research questions
 # =============================================================================
 s = new_slide("bg_content_d.jpg", notes=(
-    "Five research questions drive the project. Each maps onto a block of the probability and "
+    "Six research questions drive the project. Each maps onto a block of the probability and "
     "statistics syllabus: interval estimation and hypothesis testing; trend tests and regression; "
     "distribution fitting and extreme-value theory; Markov chains and Monte Carlo; and "
     "logistic regression with probabilistic verification."))
@@ -343,9 +358,11 @@ rqs = [
      "Two-state Markov chain · geometric law · Monte Carlo"),
     ("RQ5", "Can we warn a day ahead with honest probabilities?",
      "Logistic regression · Brier skill · ROC/AUC · reliability"),
+    ("RQ6", "Can baseline ML warn 1–3 days ahead, even in a city it never saw?",
+     "Decision tree · random forest · hybrid IMD + ML alert · leave-one-city-out"),
 ]
 for i, (k, q, m) in enumerate(rqs):
-    y = 1.95 + i * 1.02
+    y = 1.8 + i * 0.88
     text(s, 0.85, y, 1.1, 0.6, k, size=26, color=AMBER)
     text(s, 2.05, y - 0.02, 10.3, 0.45, q, size=19)
     text(s, 2.05, y + 0.45, 10.3, 0.4, m, size=13.5, color=MUTED)
@@ -696,6 +713,73 @@ text(s, 0.85, 6.3, 8.0, 0.8,
      f"(95% CI {float(odds['OR_lo']):.1f}–{float(odds['OR_hi']):.1f}).", size=14, color=MUTED)
 
 # =============================================================================
+# 19b. RQ6 machine-learning set-up and novelty
+# =============================================================================
+s = new_slide("bg_content_c_dim.jpg", notes=(
+    "RQ6 pushes the warning further with standard baseline machine-learning models: a decision "
+    "tree and a random forest, next to the logistic model and climatology. We forecast one, two "
+    "and three days ahead with the same unseen test years. Three things are new: features built "
+    "from physiology, a hybrid alert that keeps the IMD rule and adds an ML layer, and a test "
+    "of whether the model works in a city it was never trained on."))
+title(s, "RQ6 · Baseline ML, and what is new")
+text(s, 0.85, 1.85, 5.6, 5.0, [
+    [("Set-up", {"font": REGULAR, "color": AMBER})],
+    "Target: will the day +1, +2 or +3 ahead be a danger day (wet-bulb ≥ 29 °C)?",
+    "Baselines: climatology, IMD rule, logistic regression, decision tree (rpart), random forest (ranger, 400 trees)",
+    f"{len(mli)} features: today's weather, 3–7-day wet-bulb history, season, city",
+    "Train 1981–2014 · alert thresholds tuned on 2010–14 · test 2015–25, never seen",
+], size=14.5, space_after=10)
+text(s, 6.85, 1.85, 5.6, 0.5, [[("What is new", {"font": REGULAR, "color": AMBER})]], size=14.5)
+novel = [("Physiology-informed features", "headroom to the 29 °C limit · closing speed · days-to-limit"),
+         ("Hybrid alert, not a replacement", "IMD rule OR ML layer, scored on blind-spot recovery"),
+         ("Zero-history cities", "leave-one-city-out: warn where no labelled past exists")]
+for i, (h, sub) in enumerate(novel):
+    box(s, 6.85, 2.45 + i * 1.4, 5.6, 1.2,
+        [[(h, {"font": REGULAR, "color": AMBER, "size": 17})], [(sub, {"color": MUTED, "size": 13})]])
+
+# =============================================================================
+# 19c. RQ6 model comparison
+# =============================================================================
+s = new_slide("bg_content_b_dim.jpg", notes=(
+    f"On the unseen years the random forest is best at every lead time: AUC {f2(rf1['AUC'])} one day "
+    f"ahead against {f2(lr1['AUC'])} for logistic regression and {f2(imdsk['AUC'])} for the IMD rule, and "
+    f"still {f2(rf3['AUC'])} three days ahead. A single decision tree is the weakest model; averaging "
+    f"many trees removes its variance. Our physiology-informed headroom feature ranks {head_rank} of {len(mli)}."))
+title(s, "RQ6 · Random forest leads at every lead time")
+picture(s, FIGS / "fig_ml_models.png", 0.55, 1.6, w=8.3, h=4.4)
+stat(s, 9.2, 1.7, 3.8, f"AUC {f2(rf1['AUC'])}",
+     f"random forest, +1 day (logistic {f2(lr1['AUC'])}, IMD rule {f2(imdsk['AUC'])})", big_size=28)
+stat(s, 9.2, 3.35, 3.8, f"AUC {f2(rf3['AUC'])}",
+     f"still at +3 days, vs {f2(clim3['AUC'])} for climatology", big_size=28)
+stat(s, 9.2, 5.0, 3.8, f"+{pct(rf1['BSS'], 0)}", "Brier skill over climatology, +1 day", big_size=28)
+text(s, 0.85, 6.3, 8.0, 0.8,
+     f"Headroom to the physiological limit ranks #{head_rank} of {len(mli)} features. "
+     "One tree is the weakest model; a forest of 400 fixes its variance.", size=14, color=MUTED)
+
+# =============================================================================
+# 19d. Novelty results: hybrid alert and transfer
+# =============================================================================
+s = new_slide("bg_content_d_dim.jpg", notes=(
+    f"The hybrid alert keeps the IMD rule and adds the random-forest layer. It recovers "
+    f"{pct(hyb['blind_spot_recovered'], 0)} of the next-day danger days the IMD rule cannot see, against "
+    f"{pct(imd_h['blind_spot_recovered'], 0)} for the rule alone. On the right, each city is held out "
+    f"completely: trained on the others, the forest still reaches a mean AUC of {f2(loco_unseen)}, "
+    f"almost the {f2(loco_seen)} it gets with local data. The cost is false alarms, which suits a cheap "
+    "advisory such as hydrate-and-rest messaging."))
+title(s, "Novelty · Closing the blind spot, anywhere")
+picture(s, FIGS / "fig_ml_hybrid_transfer.png", 0.55, 1.6, w=8.3, h=4.4)
+stat(s, 9.2, 1.7, 3.8, pct(hyb["blind_spot_recovered"], 0),
+     f"of the blind spot recovered by the hybrid alert (IMD rule alone: {pct(imd_h['blind_spot_recovered'], 0)})",
+     big_size=28)
+stat(s, 9.2, 3.35, 3.8, pct(hyb["POD"], 0),
+     f"of next-day danger days caught (IMD rule: {pct(imd_h['POD'], 0)})", big_size=28)
+stat(s, 9.2, 5.0, 3.8, f"{f2(loco_unseen)} / {f2(loco_seen)}",
+     "mean AUC in an unseen city / a trained city", big_size=28)
+text(s, 0.85, 6.3, 8.0, 0.8,
+     f"Honest cost: {pct(hyb['FAR'], 0)} of hybrid alerts are false alarms. That suits a cheap "
+     "hydrate-and-rest advisory, not school closures.", size=14, color=MUTED)
+
+# =============================================================================
 # 20. Dashboard
 # =============================================================================
 s = new_slide("bg_content_e_dim.jpg", notes=(
@@ -717,21 +801,23 @@ text(s, 0.85, 6.78, 11.6, 0.4, "Rscript -e 'shiny::runApp(\"app\")'  ·  5 tabs:
 # 21. Conclusions
 # =============================================================================
 s = new_slide("bg_content_c.jpg", notes=(
-    "To answer the five questions: the rule misses 96% of dangerous humid heat; danger days "
+    "To answer the six questions: the rule misses 96% of dangerous humid heat; danger days "
     "grow about 54% per decade; extremes are shifting in seven of ten cities; danger comes in "
-    "persistent spells; and a simple calibrated model warns far better than the rule. Three "
+    "persistent spells; a simple calibrated model warns far better than the rule; and a random "
+    "forest extends the warning to three days and to cities with no history. Three "
     "recommendations follow."))
 title(s, "Conclusions & recommendations")
 ans = [("RQ1", f"The IMD rule misses {pct(pooled['miss_rate'], 0)} of dangerous humid-heat days, in every city"),
        ("RQ2", f"Danger days grow ×{f2(counts['IRR_per_decade'])} per decade; Apr–Jun wet-bulb is up {f2(tukey['diff'])} °C"),
        ("RQ3", f"Tail shifting in {n_trend_sig}/10 cities; Chennai's 1985 50-year extreme is now 1-in-{float(che['return_period_now']):.1f}"),
        ("RQ4", "Danger persists in spells; 3-day spells are now far more likely"),
-       ("RQ5", f"A logistic warning reaches AUC {f2(logit['AUC'])} vs {f2(imdsk['AUC'])}, and is calibrated")]
+       ("RQ5", f"A logistic warning reaches AUC {f2(logit['AUC'])} vs {f2(imdsk['AUC'])}, and is calibrated"),
+       ("RQ6", f"A random forest reaches AUC {f2(rf1['AUC'])}, recovers {pct(hyb['blind_spot_recovered'], 0)} of the blind spot, and transfers to unseen cities")]
 for i, (k, a) in enumerate(ans):
-    y = 1.8 + i * 0.52
+    y = 1.75 + i * 0.5
     text(s, 0.85, y, 0.9, 0.45, k, size=15, color=AMBER, font=REGULAR)
     text(s, 1.75, y, 10.6, 0.45, a, size=15)
-arrow_list(s, 0.85, 4.75, 11.8, [
+arrow_list(s, 0.85, 4.95, 11.8, [
     "Add a humidity-aware trigger (wet-bulb or Heat Index) to heatwave declarations",
     "Replace fixed national cut-offs with local, probabilistic thresholds and return periods",
     "Prioritise Kolkata, Bhubaneswar, Visakhapatnam and Chennai, where silent days dominate",
