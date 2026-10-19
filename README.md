@@ -18,6 +18,7 @@ India declares a heatwave only on **dry-bulb** temperature: 40 °C on the plains
 | RQ3 Extremes | Location shift of the GEV is significant in 7/10 cities. Chennai's 1-in-50-year extreme of 1985 is now **1-in-2.6 years**. |
 | RQ4 Spells | Strong day-to-day persistence (odds ratio 27–41) with geometric spell lengths. In Chennai, P(≥ 3-day spell per season) rose from 2% to 23%. |
 | RQ5 Warning | A logistic next-day model reaches **AUC 0.92** (vs 0.61 for the IMD-rule state), with Brier skill +17% over climatology. |
+| RQ6 ML | Baseline ML (decision tree, random forest) 1–3 days ahead. Random forest: **AUC 0.95** at +1 day, 0.89 at +3. A hybrid IMD + RF alert recovers **45%** of the blind spot (IMD alone: 1%). Leave-one-city-out AUC 0.93 vs 0.94 in-city, so it transfers to cities with no history. |
 
 ## Run it
 
@@ -27,7 +28,7 @@ Rscript -e 'shiny::runApp("app")'     # interactive dashboard
 uv run --with python-pptx --with pillow python presentation/build_deck.py   # rebuild the slides
 ```
 
-Needs R ≥ 4.3 with: dplyr, tidyr, ggplot2, scales, patchwork, ggridges, jsonlite, fitdistrplus, MASS, evd, pROC, shiny, bslib, knitr, markdown. The raw downloads are cached in `data/raw/`, so later runs work offline.
+Needs R ≥ 4.3 with: dplyr, tidyr, ggplot2, scales, patchwork, ggridges, jsonlite, fitdistrplus, MASS, evd, pROC, rpart, ranger, shiny, bslib, knitr, markdown. The raw downloads are cached in `data/raw/`, so later runs work offline.
 
 ## Layout
 
@@ -43,6 +44,8 @@ R/06_trends.R           RQ2: Mann–Kendall, NB GLM, era tests (Wilcoxon, Welch,
 R/07_extremes_gev.R     RQ3: GEV MLE (checked against evd::fgev), return levels, non-stationary GEV + LRT
 R/08_markov_spells.R    RQ4: two-state Markov chain, geometric spells, Monte Carlo by era
 R/09_early_warning.R    RQ5: logistic model, Brier skill, ROC/DeLong, reliability, operating points
+R/11_ml_models.R        RQ6: logistic / decision tree / random forest at 1-3 day leads, physiology-informed
+                        headroom features, hybrid IMD + ML alert, leave-one-city-out transfer
 R/10_render_report.R    knitr + markdown → report/report.html → report.pdf (headless Chrome)
 app/app.R               Shiny dashboard (blind spot · trends · extremes · risk calculator · about)
 report/report.Rmd       the written report; every number is pulled live from outputs/
