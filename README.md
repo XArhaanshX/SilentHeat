@@ -1,63 +1,100 @@
-# Beyond 40 °C
+# SilentHeat
 
-**Quantifying the humid-heat blind spot in India's heatwave warnings**
-Probability & Statistics Lab project, built end-to-end in R.
+**India's heatwave rule only looks at the thermometer. SilentHeat measures the humid heat it misses, and forecasts it.**
 
-## The gap
+India declares a heatwave on **dry-bulb** temperature alone: 40 °C on the plains or 37 °C on the coast, plus a 4.5 °C departure from normal. That declaration is what switches on Heat Action Plans. But the body cools by evaporating sweat, and humid air stops that. Lab physiology (Vecellio et al., 2022) puts the limit for healthy young adults at a **wet-bulb temperature of about 30–31 °C**. A 36 °C afternoon at 60% humidity sits right at that edge, and the official rule calls it an ordinary day.
 
-India declares a heatwave only on **dry-bulb** temperature: 40 °C on the plains or 37 °C on the coast, plus a 4.5 °C departure from normal. That declaration triggers Heat Action Plans. Humid heat, which is what actually stops the body cooling, is not part of the rule. A 2023 Centre for Policy Research review of 37 plans found that most use national thresholds and ignore humid heat. Lab physiology (Vecellio et al., 2022) puts the humid-air limit for healthy young adults at a wet-bulb of about 30–31 °C.
+SilentHeat audits 45 years of weather across 10 Indian cities to answer three questions: how much dangerous humid heat does the rule miss, is the miss getting worse, and can probability and ML models close it?
 
-**Question:** how much dangerous humid heat does the official rule miss? Is the miss growing, and can probability models close it?
+<p align="center"><img src="outputs/figures/report/fig_blindspot_scatter.png" width="85%" alt="Dangerous humid-heat days sit below the IMD temperature line"></p>
 
-## Headline results (10 cities, 1981–2025, 164,360 city-days)
+## Key results
 
-| Research question | Result |
-|---|---|
-| RQ1 Blind spot | **96.3%** of dangerous humid-heat days (wet-bulb ≥ 29 °C) were *not* IMD heatwave days (703/730, Wilson 95% CI 94.7–97.4%). Cohen's κ ≈ 0. Same in every city; 96–99% under every threshold tested. |
-| RQ2 Trend | Danger days grow **×1.54 per decade** (negative binomial, 95% CI 1.34–1.77). April–June wet-bulb in 2021–25 is 0.53 °C above 1981–90. |
-| RQ3 Extremes | Location shift of the GEV is significant in 7/10 cities. Chennai's 1-in-50-year extreme of 1985 is now **1-in-2.6 years**. |
-| RQ4 Spells | Strong day-to-day persistence (odds ratio 27–41) with geometric spell lengths. In Chennai, P(≥ 3-day spell per season) rose from 2% to 23%. |
-| RQ5 Warning | A logistic next-day model reaches **AUC 0.92** (vs 0.61 for the IMD-rule state), with Brier skill +17% over climatology. |
-| RQ6 ML | Baseline ML (decision tree, random forest) 1–3 days ahead. Random forest: **AUC 0.95** at +1 day, 0.89 at +3. A hybrid IMD + RF alert recovers **45%** of the blind spot (IMD alone: 1%). Leave-one-city-out AUC 0.93 vs 0.94 in-city, so it transfers to cities with no history. |
+10 cities · 1981–2025 · 164,360 city-days of ERA5 reanalysis
 
-## Run it
+| | Question | Finding |
+|---|---|---|
+| **RQ1** | How much does the IMD rule miss? | **96.3%** of dangerous humid-heat days (wet-bulb ≥ 29 °C) were never heatwave days (703 of 730; 95% CI 94.7–97.4%). Cohen's κ ≈ 0. |
+| **RQ2** | Is it getting worse? | Danger days grow **×1.54 per decade** (negative binomial, 95% CI 1.34–1.77). April–June wet-bulb is up 0.53 °C since the 1980s. |
+| **RQ3** | Are the extremes moving? | GEV location shift is significant in 7 of 10 cities. Chennai's 1-in-50-year humid extreme of 1985 now returns every **2.6 years**. |
+| **RQ4** | Does danger come in spells? | Strong day-to-day persistence (odds ratio 27–41). In Chennai, P(≥ 3-day spell per season) rose from 2% to 23%. |
+| **RQ5** | Can a simple model warn a day ahead? | Logistic regression: **AUC 0.92** vs 0.61 for the IMD rule, calibrated, Brier skill +17% over climatology. |
+| **RQ6** | Can baseline ML do better, further ahead? | Random forest: **AUC 0.95** one day ahead and 0.89 three days ahead. Details below. |
+
+## The ML layer (RQ6)
+
+Three baseline classifiers (logistic regression, a decision tree, and a random forest) predict whether the day **+1, +2 or +3 days ahead** will cross the 29 °C wet-bulb danger line. They are compared against climatology and the IMD rule. Models train on 1981–2014, alert thresholds are tuned on 2010–14, and every score comes from 2015–2025, which the models never saw.
+
+<p align="center"><img src="outputs/figures/report/fig_ml_models.png" width="85%" alt="AUC by lead time and random-forest feature importance"></p>
+
+### What is new
+
+1. **Physiology-informed features.** Each day also carries its *headroom* to the 29 °C limit, how fast that headroom is closing, and the implied days-to-limit. Headroom ranks 5th of 24 features in the forest.
+2. **A hybrid alert, not a replacement.** Keep the IMD rule and add an ML layer on top. Score it on *blind-spot recovery*: the share of danger days the IMD rule cannot see that the hybrid catches. Result: **45%**, against 1% for the rule alone.
+3. **Zero-history cities.** Leave each city out entirely, train on the rest, and forecast it. The forest still reaches a mean AUC of **0.93**, against 0.94 with local data, so the warning can run where no labelled history exists.
+
+<p align="center"><img src="outputs/figures/report/fig_ml_hybrid_transfer.png" width="85%" alt="Hybrid alert blind-spot recovery and leave-one-city-out transfer"></p>
+
+The honest cost: 64% of hybrid alerts are false alarms. That is fine for a cheap "hydrate and rest" advisory, but not for closing schools.
+
+## Quick start
+
+Needs R ≥ 4.3. The raw downloads are cached in `data/raw/`, so everything runs offline.
 
 ```bash
-Rscript run_all.R                     # download → features → 7 analyses → figures → report (~1 min)
+Rscript install.R                     # install the 17 R packages used
+Rscript run_all.R                     # features → 6 analyses → ML → figures → report  (~1.5 min)
 Rscript -e 'shiny::runApp("app")'     # interactive dashboard
 uv run --with python-pptx --with pillow python presentation/build_deck.py   # rebuild the slides
 ```
 
-Needs R ≥ 4.3 with: dplyr, tidyr, ggplot2, scales, patchwork, ggridges, jsonlite, fitdistrplus, MASS, evd, pROC, rpart, ranger, shiny, bslib, knitr, markdown. The raw downloads are cached in `data/raw/`, so later runs work offline.
-
-## Layout
+## Project structure
 
 ```
-R/00_setup.R            shared helpers, written from scratch: GEV likelihood/MLE/return levels,
-                        Mann–Kendall + Sen, Wilson CI, Cohen's κ, Markov counts, Stull wet-bulb, NWS heat index
-R/01_fetch_data.R       ERA5 via Open-Meteo API (jsonlite, retries, cache)
-R/02_build_features.R   harmonic-regression normals, IMD heatwave rule, humid-heat flags, heat index
-R/03_eda.R              descriptive stats, Tmax–RH correlation, wet-bulb regression, figures
-R/04_distribution_fit.R Normal/Gamma/Weibull/Lognormal MLE; Poisson vs negative binomial
-R/05_blind_spot.R       RQ1: miss rates with Wilson/exact/block-bootstrap/Bayes intervals, χ², McNemar, κ, sensitivity
-R/06_trends.R           RQ2: Mann–Kendall, NB GLM, era tests (Wilcoxon, Welch, KS, permutation), ANOVA + Tukey, Friedman
-R/07_extremes_gev.R     RQ3: GEV MLE (checked against evd::fgev), return levels, non-stationary GEV + LRT
-R/08_markov_spells.R    RQ4: two-state Markov chain, geometric spells, Monte Carlo by era
-R/09_early_warning.R    RQ5: logistic model, Brier skill, ROC/DeLong, reliability, operating points
-R/11_ml_models.R        RQ6: logistic / decision tree / random forest at 1-3 day leads, physiology-informed
-                        headroom features, hybrid IMD + ML alert, leave-one-city-out transfer
-R/10_render_report.R    knitr + markdown → report/report.html → report.pdf (headless Chrome)
-app/app.R               Shiny dashboard (blind spot · trends · extremes · risk calculator · about)
-report/report.Rmd       the written report; every number is pulled live from outputs/
-presentation/           Beyond40C_ProbStats.pptx (+ .pdf) and its builder; styled after the fatigue-detection deck
-outputs/tables/         30+ CSV/RDS result tables
-outputs/figures/        each figure twice: deck/ (dark, transparent) and report/ (light)
+silent-heat/
+├── run_all.R                 one command: rebuilds every table, figure and the report
+├── install.R                 R package dependencies
+├── R/
+│   ├── 00_setup.R            shared helpers written from scratch: GEV likelihood and return levels,
+│   │                         Mann–Kendall + Sen, Wilson CI, Cohen's κ, Stull wet-bulb, NWS heat index
+│   ├── 01_fetch_data.R       ERA5 via the Open-Meteo API (retries, cache)
+│   ├── 02_build_features.R   harmonic climate normals, IMD heatwave rule, humid-heat flags
+│   ├── 03_eda.R              descriptive statistics, Tmax–RH correlation, wet-bulb regression
+│   ├── 04_distribution_fit.R Normal / Gamma / Weibull / Lognormal MLE, Poisson vs negative binomial
+│   ├── 05_blind_spot.R       RQ1  miss rates (Wilson, exact, block bootstrap, Bayes), χ², McNemar, κ
+│   ├── 06_trends.R           RQ2  Mann–Kendall, NB GLM, era tests, ANOVA + Tukey, Friedman
+│   ├── 07_extremes_gev.R     RQ3  GEV MLE (checked against evd::fgev), non-stationary GEV + LRT
+│   ├── 08_markov_spells.R    RQ4  two-state Markov chain, geometric spells, Monte Carlo
+│   ├── 09_early_warning.R    RQ5  logistic warning, Brier skill, ROC/DeLong, reliability
+│   ├── 10_ml_models.R        RQ6  decision tree, random forest, hybrid alert, leave-one-city-out
+│   └── 11_render_report.R    knit the report to HTML and PDF
+├── app/app.R                 Shiny dashboard: blind spot · trends · extremes · risk calculator
+├── data/
+│   ├── raw/                  cached ERA5 downloads, one CSV per city
+│   └── processed/            daily feature table (RDS)
+├── outputs/
+│   ├── tables/               ~40 result tables (CSV/RDS)
+│   └── figures/              every figure twice: deck/ (dark) and report/ (light)
+├── report/                   written report (Rmd → HTML/PDF); every number is pulled from outputs/
+├── presentation/             SilentHeat.pptx + PDF, and the script that builds them
+└── docs/                     one-page project brief
 ```
 
-## Notes and limitations
+## Data and limitations
 
-- ERA5 (0.25°) smooths local peaks, so station data would raise every count. The dry-vs-humid separation is structural.
-- We apply the IMD rule to one grid cell, not two stations. That is more generous to IMD, so the miss rates are lower bounds.
-- The deck uses the Poppins font (free on Google Fonts). Install it on the presenting machine, or present the PDF copy.
+- **Data:** ERA5 reanalysis (Hersbach et al., 2020) via [Open-Meteo](https://open-meteo.com/), CC BY 4.0. Daily max/min temperature, wet-bulb and humidity at the grid cell nearest each city.
+- **Smoothing:** ERA5's 0.25° grid smooths local peaks, so station data would raise every count. The split between dry heat and humid heat is structural, though.
+- **Lower bounds:** the IMD rule is applied to one grid cell rather than two stations. That is more generous to IMD, so the miss rates are lower bounds.
+- **Who the threshold fits:** the wet-bulb limits come from young, healthy adults. Older people and outdoor workers are at risk sooner.
+- **ML scope:** the ML models cover the 5 cities with at least 20 danger days. Elsewhere the outcome is almost always zero.
 
-Data: ERA5 (Hersbach et al., 2020) via Open-Meteo, CC BY 4.0.
+## References
+
+- Vecellio, D. J. et al. (2022). Evaluating the 35 °C wet-bulb temperature adaptability threshold for young, healthy subjects. *Journal of Applied Physiology*.
+- Raymond, C., Matthews, T. & Horton, R. M. (2020). The emergence of heat and humidity too severe for human tolerance. *Science Advances*.
+- Pillai, A. V. & Dalmia, T. (2023). *How is India adapting to heatwaves?* Centre for Policy Research.
+- Hersbach, H. et al. (2020). The ERA5 global reanalysis. *QJRMS*.
+
+---
+
+Arhaansh Jhingan · 25BCE0541 · VIT Vellore · Probability & Statistics Lab
