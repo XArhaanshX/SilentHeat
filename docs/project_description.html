@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Beyond 40°C</title>
+<style>
+  @page { size: A4; margin: 15mm 20mm 13mm 20mm; }
+  html, body { margin: 0; background: #fff; }
+  body { font-family: "Noto Serif", "Liberation Serif", Georgia, serif; color: #1b1b1b;
+         font-size: 10pt; line-height: 1.45; }
+  .kicker { font-family: Poppins, sans-serif; font-weight: 400; font-size: 8.5pt;
+            letter-spacing: .14em; text-transform: uppercase; color: #8a6a45; margin: 0 0 5mm; }
+  h1 { font-family: Poppins, sans-serif; font-weight: 300; font-size: 31pt; line-height: 1.02;
+       letter-spacing: -.01em; margin: 0 0 3mm; }
+  .sub { font-family: Poppins, sans-serif; font-weight: 300; font-size: 14pt; color: #444;
+         margin: 0 0 6mm; line-height: 1.3; }
+  .by { font-family: Poppins, sans-serif; font-size: 9pt; color: #666; padding-bottom: 4.5mm;
+        border-bottom: 1px solid #d9d2c8; margin-bottom: 6mm; }
+  .lead { font-size: 13.2pt; line-height: 1.4; margin: 0 0 4mm; }
+  p { margin: 0 0 3.2mm; }
+  h2 { font-family: Poppins, sans-serif; font-weight: 500; font-size: 9pt; letter-spacing: .12em;
+       text-transform: uppercase; color: #8a6a45; margin: 4.5mm 0 1.8mm; }
+  .num { font-family: Poppins, sans-serif; font-weight: 500; }
+  .foot { margin-top: 3mm; font-family: Poppins, sans-serif; font-size: 8pt; color: #888; }
+</style></head><body>
+
+<p class="kicker">Probability &amp; Statistics Lab &nbsp;·&nbsp; Project description</p>
+
+<h1>Beyond 40°C</h1>
+<p class="sub">Quantifying the humid-heat blind spot in India's heatwave warnings</p>
+<div class="by">Arhaansh Jhingan &nbsp;·&nbsp; 25BCE0541 (SCOPE) &nbsp;·&nbsp; VIT Vellore</div>
+
+<p class="lead">India only declares a heatwave when the thermometer crosses 40&nbsp;°C (37&nbsp;°C on the coast), so humid days that are dangerous to the human body but stay below that line never raise an alert.</p>
+
+<p>The body cools itself by sweating, and sweat only works when it can evaporate. In humid air it can't. Researchers measure this with the wet-bulb temperature, and lab studies have found that healthy young adults start losing control of their core temperature at around 30–31&nbsp;°C wet-bulb. A 36&nbsp;°C afternoon at 60% humidity in Kolkata or Chennai sits right at that edge, yet the official rule, which looks only at temperature, treats it as an ordinary day.</p>
+
+<h2>How we fix it</h2>
+<p>We built a prediction system that judges heat the way the body experiences it. Each day it takes a city's temperature, humidity and wet-bulb readings and gives the probability that the next day will be dangerously humid. We trained it on 1981–2014 and tested it on 2015–2025, years it had never seen. It scored an AUC of <span class="num">0.92</span>, against <span class="num">0.61</span> for the IMD rule. When the IMD rule is used as a warning, it caught only <span class="num">4%</span> of the next-day danger days; our system caught <span class="num">46%</span>. Its probabilities are also calibrated: when it says 70%, danger follows about 70% of the time.</p>
+<p>The system runs inside an R Shiny dashboard. You pick a city and a day, and it shows the IMD verdict and ours side by side. On a typical humid May day in Kolkata, the official rule says "no alert" while our system flags danger with a 99% chance for the next day. The next step is to feed it the free 7-day weather forecast, so it can issue real alerts ahead of time.</p>
+
+<h2>How we used R to find the problem</h2>
+<p>We wrote the whole study in R. It downloads 45 years (1981–2025) of daily weather data for ten cities: Delhi, Lucknow, Ahmedabad, Nagpur, Kolkata, Bhubaneswar, Vellore, Chennai, Mumbai and Visakhapatnam. That comes to 164,360 city-days. R applies the official heatwave rule to every one of those days, then flags every day whose wet-bulb temperature reached 29&nbsp;°C.</p>
+<p>Of <span class="num">730</span> dangerous humid days, <span class="num">703 (96%)</span> were never declared heatwaves. Chi-square, McNemar and Cohen's kappa tests showed the two definitions almost never agree. A 95% confidence interval puts the miss rate between 95% and 97%, bootstrap and Bayesian checks agree, and a chi-square test finds no difference between cities. A Mann–Kendall trend test and a negative-binomial regression show these days are becoming about 54% more frequent every decade. An extreme-value (GEV) model, coded from scratch and checked against an R package, shows that Chennai's once-in-50-years humid extreme from 1985 now comes roughly every 2.6 years. A Markov chain shows the danger arrives in multi-day spells, not single bad days.</p>
+<p>About 1,700 lines of R handle the download, the statistics, the figures, the report and the dashboard. One command, <span class="num">Rscript run_all.R</span>, rebuilds everything from the raw data in under a minute.</p>
+
+<p class="foot">Data: ERA5 reanalysis via Open-Meteo (CC BY 4.0). Physiological threshold: Vecellio et al., Journal of Applied Physiology, 2022. Heat Action Plan review: Centre for Policy Research, 2023.</p>
+</body></html>
