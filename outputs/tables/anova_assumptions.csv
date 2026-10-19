@@ -1,0 +1,5 @@
+"test","statistic","p_value"
+"Shapiro-Wilk on residuals",0.986594236119274,0.00036686233230658
+"Bartlett homogeneity (decade)",17.7617530149269,0.00137366176403879
+"Friedman (decade | city), robustness",33.76,8.34596693767299e-07
+"Kruskal-Wallis (decade), robustness",6.15240564327353,0.188051964478589

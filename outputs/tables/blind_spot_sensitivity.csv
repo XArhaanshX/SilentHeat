@@ -1,0 +1,61 @@
+"city","imd_category","threshold","n_days","missed","miss_rate"
+"Ahmedabad","Plains","Tw ≥ 27",937,930,0.992529348986126
+"Ahmedabad","Plains","Tw ≥ 28",86,86,1
+"Ahmedabad","Plains","Tw ≥ 29",0,0,NA
+"Ahmedabad","Plains","Tw ≥ 30",0,0,NA
+"Ahmedabad","Plains","Local P95",937,930,0.992529348986126
+"Ahmedabad","Plains","Local P99",205,205,1
+"Bhubaneswar","Plains","Tw ≥ 27",4419,4357,0.985969676397375
+"Bhubaneswar","Plains","Tw ≥ 28",1287,1242,0.965034965034965
+"Bhubaneswar","Plains","Tw ≥ 29",161,150,0.93167701863354
+"Bhubaneswar","Plains","Tw ≥ 30",11,10,0.909090909090909
+"Bhubaneswar","Plains","Local P95",902,863,0.956762749445676
+"Bhubaneswar","Plains","Local P99",197,184,0.934010152284264
+"Chennai","Coastal","Tw ≥ 27",2083,2079,0.99807969275084
+"Chennai","Coastal","Tw ≥ 28",487,483,0.991786447638604
+"Chennai","Coastal","Tw ≥ 29",64,63,0.984375
+"Chennai","Coastal","Tw ≥ 30",5,5,1
+"Chennai","Coastal","Local P95",923,919,0.99566630552546
+"Chennai","Coastal","Local P99",191,189,0.989528795811518
+"Delhi","Plains","Tw ≥ 27",2018,2005,0.993557978196234
+"Delhi","Plains","Tw ≥ 28",372,370,0.994623655913978
+"Delhi","Plains","Tw ≥ 29",13,13,1
+"Delhi","Plains","Tw ≥ 30",0,0,NA
+"Delhi","Plains","Local P95",922,917,0.994577006507592
+"Delhi","Plains","Local P99",172,171,0.994186046511628
+"Kolkata","Plains","Tw ≥ 27",5560,5522,0.993165467625899
+"Kolkata","Plains","Tw ≥ 28",1905,1885,0.989501312335958
+"Kolkata","Plains","Tw ≥ 29",308,299,0.970779220779221
+"Kolkata","Plains","Tw ≥ 30",33,33,1
+"Kolkata","Plains","Local P95",823,807,0.980558930741191
+"Kolkata","Plains","Local P99",192,188,0.979166666666667
+"Lucknow","Plains","Tw ≥ 27",2937,2867,0.976166155941437
+"Lucknow","Plains","Tw ≥ 28",792,765,0.965909090909091
+"Lucknow","Plains","Tw ≥ 29",31,30,0.967741935483871
+"Lucknow","Plains","Tw ≥ 30",2,1,0.5
+"Lucknow","Plains","Local P95",965,932,0.96580310880829
+"Lucknow","Plains","Local P99",198,189,0.954545454545455
+"Mumbai","Coastal","Tw ≥ 27",708,708,1
+"Mumbai","Coastal","Tw ≥ 28",49,49,1
+"Mumbai","Coastal","Tw ≥ 29",2,2,1
+"Mumbai","Coastal","Tw ≥ 30",0,0,NA
+"Mumbai","Coastal","Local P95",881,881,1
+"Mumbai","Coastal","Local P99",201,201,1
+"Nagpur","Plains","Tw ≥ 27",168,167,0.994047619047619
+"Nagpur","Plains","Tw ≥ 28",5,5,1
+"Nagpur","Plains","Tw ≥ 29",0,0,NA
+"Nagpur","Plains","Tw ≥ 30",0,0,NA
+"Nagpur","Plains","Local P95",860,856,0.995348837209302
+"Nagpur","Plains","Local P99",168,167,0.994047619047619
+"Vellore","Plains","Tw ≥ 27",26,26,1
+"Vellore","Plains","Tw ≥ 28",3,3,1
+"Vellore","Plains","Tw ≥ 29",1,1,1
+"Vellore","Plains","Tw ≥ 30",0,0,NA
+"Vellore","Plains","Local P95",829,821,0.990349819059107
+"Vellore","Plains","Local P99",219,215,0.981735159817352
+"Visakhapatnam","Coastal","Tw ≥ 27",3199,3127,0.977492966552048
+"Visakhapatnam","Coastal","Tw ≥ 28",965,932,0.96580310880829
+"Visakhapatnam","Coastal","Tw ≥ 29",150,145,0.966666666666667
+"Visakhapatnam","Coastal","Tw ≥ 30",7,7,1
+"Visakhapatnam","Coastal","Local P95",849,826,0.972909305064782
+"Visakhapatnam","Coastal","Local P99",186,181,0.973118279569892

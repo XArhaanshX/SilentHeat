@@ -1,0 +1,75 @@
+$n_danger
+[1] 730
+
+$n_silent
+[1] 703
+
+$miss_rate
+[1] 0.9630137
+
+$wilson
+        est        lo        hi
+1 0.9630137 0.9467218 0.9744581
+
+$n_critical
+[1] 2
+
+$n_critical_silent
+[1] 1
+
+$hi_orange_capture
+[1] 0.8082192
+
+$imd_days
+[1] 990
+
+$imd_days_humid
+[1] 27
+
+$homogeneity
+
+	Pearson's Chi-squared test with simulated p-value (based on 10000
+	replicates)
+
+data:  hom_tab
+X-squared = 6.4703, df = NA, p-value = 0.3324
+
+
+$coastal_vs_plains
+
+	2-sample test for equality of proportions with continuity correction
+
+data:  cp$silent out of cp$n
+X-squared = 0.4093, df = 1, p-value = 0.5223
+alternative hypothesis: two.sided
+95 percent confidence interval:
+ -0.01801509  0.04417160
+sample estimates:
+   prop 1    prop 2 
+0.9722222 0.9591440 
+
+
+$cp_table
+# A tibble: 2 × 3
+  imd_category     n silent
+  <chr>        <int>  <int>
+1 Coastal        216    210
+2 Plains         514    493
+
+$joint
+       Danger
+IMD            FALSE         TRUE
+  FALSE 0.9896994403 0.0042771964
+  TRUE  0.0058590898 0.0001642735
+
+$sensitivity_pooled
+# A tibble: 6 × 4
+  threshold n_days missed miss_rate
+  <chr>      <int>  <int>     <dbl>
+1 Local P95   8891   8752     0.984
+2 Local P99   1929   1890     0.980
+3 Tw ≥ 27    22055  21788     0.988
+4 Tw ≥ 28     5951   5820     0.978
+5 Tw ≥ 29      730    703     0.963
+6 Tw ≥ 30       58     56     0.966
+
