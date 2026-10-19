@@ -1,5 +1,5 @@
 # =============================================================================
-# 10_render_report.R  -  knit report/report.Rmd to a self-contained HTML file
+# 11_render_report.R  -  knit report/report.Rmd to a self-contained HTML file
 # (knitr + markdown, no pandoc needed) and print it to PDF with headless Chrome
 # =============================================================================
 

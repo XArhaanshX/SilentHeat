@@ -10,8 +10,8 @@ source("R/00_setup.R")
 
 steps <- c("01_fetch_data.R", "02_build_features.R", "03_eda.R",
            "04_distribution_fit.R", "05_blind_spot.R", "06_trends.R",
-           "07_extremes_gev.R", "08_markov_spells.R", "09_early_warning.R", "11_ml_models.R",
-           "10_render_report.R")
+           "07_extremes_gev.R", "08_markov_spells.R", "09_early_warning.R", "10_ml_models.R",
+           "11_render_report.R")
 
 t_all <- Sys.time()
 for (s in steps) {

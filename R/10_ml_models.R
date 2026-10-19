@@ -1,5 +1,5 @@
 # =============================================================================
-# 11_ml_models.R  -  ML extension of RQ5: baseline classifiers for humid-heat
+# 10_ml_models.R  -  ML extension of RQ5: baseline classifiers for humid-heat
 # early warning, 1-3 days ahead.
 #   Models: logistic regression, decision tree (rpart), random forest (ranger),
 #   against climatology and the IMD rule. Same temporal hold-out as RQ5
