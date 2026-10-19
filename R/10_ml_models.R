@@ -180,7 +180,7 @@ save_fig(function(mode) {
 save_fig(function(mode) {
   p <- PAL[[mode]]
   hb <- ml_hybrid |> filter(lead_days == 1) |>
-    select(rule, `Hit rate (POD)` = POD, `Blind spot recovered` = blind_spot_recovered) |>
+    dplyr::select(rule, `Hit rate (POD)` = POD, `Blind spot recovered` = blind_spot_recovered) |>
     pivot_longer(-rule) |> mutate(rule = factor(rule, unique(ml_hybrid$rule)))
   a <- ggplot(hb, aes(value, rule, fill = name)) +
     geom_col(position = position_dodge(0.75), width = 0.7) +
