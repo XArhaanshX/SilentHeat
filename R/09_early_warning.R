@@ -135,7 +135,7 @@ save_fig(function(mode) {
                         labels = paste0(skill$model, "  (AUC ", sprintf("%.2f", skill$AUC), ")")) +
     labs(x = "False-positive rate", y = "Hit rate", subtitle = "ROC on 2015–2025 test years") +
     guides(colour = guide_legend(ncol = 2)) +
-    theme_b40(mode) + theme(legend.position = "bottom", legend.text = element_text(size = 9.5))
+    theme_sh(mode) + theme(legend.position = "bottom", legend.text = element_text(size = 9.5))
   b <- ggplot(rel, aes(mean_p, obs)) +
     geom_abline(colour = p$muted, linetype = "22") +
     geom_errorbar(aes(ymin = lo, ymax = hi), colour = p$amber, width = 0.015) +
@@ -143,7 +143,7 @@ save_fig(function(mode) {
     coord_equal(xlim = c(0, 1), ylim = c(0, 1)) +
     labs(x = "Forecast probability", y = "Observed frequency",
          subtitle = "Reliability of the logistic model") +
-    theme_b40(mode)
+    theme_sh(mode)
   a + b + plot_layout(widths = c(1.15, 1))
 }, "fig_early_warning", w = 9.4, h = 5)
 

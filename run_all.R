@@ -1,11 +1,11 @@
 # =============================================================================
-# run_all.R  -  reproduce the entire Beyond 40°C study with one command:
+# run_all.R  -  reproduce the entire SilentHeat study with one command:
 #     Rscript run_all.R            (from the project folder)
 # Steps: download -> features -> EDA -> distributions -> blind spot ->
 #        trends -> extremes -> Markov spells -> early warning -> ML models -> report
 # =============================================================================
 
-Sys.setenv(B40_HOME = normalizePath("."))
+Sys.setenv(SILENTHEAT_HOME = normalizePath("."))
 source("R/00_setup.R")
 
 steps <- c("01_fetch_data.R", "02_build_features.R", "03_eda.R",

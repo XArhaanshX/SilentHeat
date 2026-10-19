@@ -163,7 +163,7 @@ save_fig(function(mode) {
     scale_x_continuous(breaks = c(1985, 2005, 2025)) +
     labs(x = NULL, y = "Danger days per year (Tw ≥ 29 °C)",
          caption = "Cities with ≥ 20 danger days. Line = negative-binomial trend (×IRR per decade); p = Mann–Kendall test (own implementation, tie-corrected).") +
-    theme_b40(mode, base = 13)
+    theme_sh(mode, base = 13)
 }, "fig_trend_counts", w = 12, h = 4.3)
 
 save_fig(function(mode) {
@@ -178,7 +178,7 @@ save_fig(function(mode) {
                         labels = c(Plains = "Plains cities", Coastal = "Coastal cities")) +
     labs(x = NULL, y = "Apr–Jun mean daily max wet-bulb (°C)",
          caption = "Mean ± 95% CI of city-year values.") +
-    theme_b40(mode)
+    theme_sh(mode)
 }, "fig_decade_means", w = 8, h = 5)
 
 message("Trend analysis done")

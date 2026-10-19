@@ -108,7 +108,7 @@ save_fig(function(mode) {
     facet_wrap(~city, nrow = 1, scales = "free_y") +
     labs(x = "Spell length (consecutive danger days)", y = "Number of spells",
          caption = "Bars = observed spells in each city's 61-day peak season; dots = geometric law implied by the fitted Markov chain.") +
-    theme_b40(mode, base = 12)
+    theme_sh(mode, base = 12)
 }, "fig_spell_lengths", w = 12, h = 4.4)
 
 save_fig(function(mode) {
@@ -126,7 +126,7 @@ save_fig(function(mode) {
     scale_x_continuous(labels = percent) +
     scale_colour_manual(values = c("1981–2000" = p$blue, "2006–2025" = p$amber)) +
     labs(x = "Monte Carlo probability\n(10,000 simulated seasons per era)", y = NULL) +
-    theme_b40(mode)
+    theme_sh(mode)
 }, "fig_markov_montecarlo", w = 7, h = 5)
 
 message("Markov analysis done")

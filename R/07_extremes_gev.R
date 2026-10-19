@@ -101,7 +101,7 @@ save_fig(function(mode) {
     scale_fill_manual(values = cat_cols(mode), guide = "none") +
     labs(x = "Return period (years, log scale)", y = "Annual max wet-bulb (°C)",
          caption = "GEV fitted by maximum likelihood (own optim code). Band = 95% delta-method CI; dots = observed annual maxima (Weibull plotting positions). Dashed = 31 °C.") +
-    theme_b40(mode, base = 13)
+    theme_sh(mode, base = 13)
 }, "fig_return_levels", w = 12, h = 4.4)
 
 # ---- Figure: GEV diagnostics for Chennai (probability & quantile plots) ----
@@ -115,11 +115,11 @@ save_fig(function(mode) {
   a <- ggplot(pp, aes(model, emp)) + geom_abline(colour = p$muted) +
     geom_point(colour = p$amber, size = 2) +
     labs(x = "Model probability", y = "Empirical probability", subtitle = "Probability plot") +
-    theme_b40(mode)
+    theme_sh(mode)
   b <- ggplot(qq, aes(model, emp)) + geom_abline(colour = p$muted) +
     geom_point(colour = p$amber, size = 2) +
     labs(x = "Model quantile (°C)", y = "Empirical quantile (°C)", subtitle = "Quantile plot") +
-    theme_b40(mode)
+    theme_sh(mode)
   a + b
 }, "fig_gev_diagnostics_chennai", w = 9, h = 4.2)
 

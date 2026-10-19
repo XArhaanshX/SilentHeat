@@ -1,5 +1,5 @@
 ---
-title: "Beyond 40 °C: Quantifying the Humid-Heat Blind Spot in India's Heatwave Warnings"
+title: "SilentHeat: Quantifying the Humid-Heat Blind Spot in India's Heatwave Warnings"
 author: "Arhaansh Jhingan (25BCE0541) · Probability & Statistics Lab · VIT Vellore"
 date: "October 2026"
 output: html_document
@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
-Sys.setenv(B40_HOME = normalizePath(".."))
+Sys.setenv(SILENTHEAT_HOME = normalizePath(".."))
 source(file.path("..", "R", "00_setup.R"))
 T_ <- function(n) read.csv(path("outputs", "tables", paste0(n, ".csv")))
 pc <- function(x, d = 1) paste0(formatC(100 * x, format = "f", digits = d), "%")

@@ -122,7 +122,7 @@ save_fig(function(mode) {
     scale_x_discrete(labels = function(x) sub(" ", "\n", x)) +
     labs(x = "Definition of a dangerous humid-heat day", y = NULL,
          caption = "Cell = share of flagged days that were not IMD heatwave days, 1981–2025\n(day counts per cell in blind_spot_sensitivity.csv).") +
-    theme_b40(mode) +
+    theme_sh(mode) +
     theme(panel.grid = element_blank(), legend.position = "right")
 }, "fig_sensitivity", w = 7.4, h = 5.9)
 
@@ -156,7 +156,7 @@ save_fig(function(mode) {
     labs(x = "Share of dangerous humid-heat days (Tw ≥ 29 °C) that were NOT IMD heatwave days",
          y = NULL,
          caption = "Point = estimate; bar = 95% year-block bootstrap interval (2000 resamples). 1981–2025.") +
-    theme_b40(mode)
+    theme_sh(mode)
 }, "fig_miss_rate", w = 10, h = 5.6)
 
 # ---- Figure: per-year counts, IMD days vs silent danger days ----------------
@@ -175,7 +175,7 @@ save_fig(function(mode) {
     scale_fill_manual(values = c(p$blue, p$amber)) +
     scale_x_continuous(expand = expansion(mult = c(0, 0.12))) +
     labs(x = "Average days per year, 1981–2025", y = NULL) +
-    theme_b40(mode)
+    theme_sh(mode)
 }, "fig_days_per_year", w = 8, h = 5.9)
 
 message("Blind-spot analysis done")

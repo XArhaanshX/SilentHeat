@@ -1,5 +1,5 @@
 """
-Build the Beyond 40°C slide deck in the visual language of the
+Build the SilentHeat slide deck in the visual language of the
 Multimodal Fatigue Detection deck (black canvas, blue-amber glow,
 Poppins Light, uppercase titles with a short tan dash).
 
@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "presentation" / "assets"
 FIGS = ROOT / "outputs" / "figures" / "deck"
 TABLES = ROOT / "outputs" / "tables"
-OUT = ROOT / "presentation" / "Beyond40C_ProbStats.pptx"
+OUT = ROOT / "presentation" / "SilentHeat.pptx"
 
 # ---- Design tokens (sampled from the reference deck) -------------------------
 WHITE = RGBColor(0xF2, 0xF2, 0xF2)
@@ -248,11 +248,11 @@ def arrow_list(slide, x, y, w, items, size=17, pitch=0.62):
 # 1. Title
 # =============================================================================
 s = new_slide("bg_title.jpg", notes=(
-    "Beyond 40 °C. India declares a heatwave using dry temperature alone. Our project asks "
+    "SilentHeat. India declares a heatwave using dry temperature alone. Our project asks "
     "how much dangerous humid heat that rule never sees, whether the blind spot is growing, "
     "and whether probability models can close it. Everything, from the data download to "
     "this deck's charts, is built in R."))
-text(s, 1.42, 1.25, 7.6, 3.3, ["BEYOND", "40°C"], size=100, spacing=0.92, name="Title")
+text(s, 1.42, 1.25, 7.6, 3.3, ["SILENT", "HEAT"], size=100, spacing=0.92, name="Title")
 text(s, 1.47, 4.55, 6.8, 1.4,
      ["QUANTIFYING THE HUMID-HEAT BLIND SPOT", "IN INDIA'S HEATWAVE WARNINGS"],
      size=21, spacing=1.15)
@@ -870,7 +870,7 @@ s = new_slide("bg_end.jpg", notes="Thank you. Questions welcome; the dashboard c
 text(s, 1.5, 2.9, 10.33, 1.6, "THANK YOU", size=64, align=PP_ALIGN.CENTER,
      anchor=MSO_ANCHOR.MIDDLE, name="Title")
 
-prs.core_properties.title = "Beyond 40°C: the humid-heat blind spot in India's heatwave warnings"
+prs.core_properties.title = "SilentHeat: the humid-heat blind spot in India's heatwave warnings"
 prs.core_properties.author = "Arhaansh Jhingan"
 prs.save(OUT)
 print("saved", OUT, "with", len(prs.slides), "slides")

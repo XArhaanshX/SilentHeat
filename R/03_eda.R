@@ -106,7 +106,7 @@ save_fig(function(mode) {
     labs(x = "Daily maximum temperature (°C)",
          y = "Daily minimum relative humidity (%)",
          caption = "10 cities, Mar–Sep 1981–2025, ERA5. Dashed lines: wet-bulb isotherms (Stull 2011).") +
-    theme_b40(mode)
+    theme_sh(mode)
 }, "fig_blindspot_scatter", w = 9, h = 5.9)
 
 # ---- Figure: the two seasons barely overlap ---------------------------------
@@ -129,7 +129,7 @@ save_fig(function(mode) {
       scale_x_continuous(breaks = c(1, 9, 18, 27, 36, 44),
                          labels = c("Jan", "Mar", "May", "Jul", "Sep", "Nov"), expand = c(0, 0)) +
       labs(x = NULL, y = NULL, subtitle = title) +
-      theme_b40(mode) +
+      theme_sh(mode) +
       theme(panel.grid = element_blank(), legend.position = "bottom",
             legend.key.width = unit(1.6, "cm"), legend.key.height = unit(0.25, "cm"),
             plot.subtitle = element_text(colour = col, size = 14))
@@ -138,7 +138,7 @@ save_fig(function(mode) {
     (panel("p_danger", p$amber, "P(dangerous humid-heat day)") +
        theme(axis.text.y = element_blank())) +
     plot_annotation(caption = "Share of days in each calendar week, 1981–2025 (square-root colour scale).",
-                    theme = theme_b40(mode))
+                    theme = theme_sh(mode))
 }, "fig_season_calendar", w = 11, h = 5.2)
 
 # ---- Figure: the distribution of daily max wet-bulb by city ------------------
@@ -160,7 +160,7 @@ save_fig(function(mode) {
     scale_x_continuous(breaks = seq(14, 32, 2)) +
     coord_cartesian(clip = "off") +
     labs(x = "Daily maximum wet-bulb temperature, April–June (°C)", y = NULL) +
-    theme_b40(mode)
+    theme_sh(mode)
 }, "fig_wetbulb_ridges", w = 9, h = 6)
 
 message("EDA done")

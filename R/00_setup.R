@@ -1,6 +1,6 @@
 # =============================================================================
 # 00_setup.R  -  shared configuration, packages, and helper functions
-# Beyond 40°C: quantifying the humid-heat blind spot in India's heatwave rule
+# SilentHeat: quantifying the humid-heat blind spot in India's heatwave rule
 # =============================================================================
 
 suppressPackageStartupMessages({
@@ -14,7 +14,7 @@ suppressPackageStartupMessages({
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
 # All paths are relative to the project root (run_all.R sets the working dir)
-PROJ <- Sys.getenv("B40_HOME", getwd())
+PROJ <- Sys.getenv("SILENTHEAT_HOME", getwd())
 
 path <- function(...) file.path(PROJ, ...)
 set.seed(2026)
@@ -50,7 +50,7 @@ systemfonts_safe <- function() tryCatch(system("fc-list : family", intern = TRUE
                                         error = function(e) character())
 FONT <- if (any(grepl("Poppins", systemfonts_safe()))) "Poppins" else "sans"
 
-theme_b40 <- function(mode = "light", base = 13) {
+theme_sh <- function(mode = "light", base = 13) {
   p <- PAL[[mode]]
   theme_minimal(base_size = base, base_family = FONT) +
     theme(

@@ -166,14 +166,14 @@ save_fig(function(mode) {
     scale_colour_manual(values = cols, name = NULL) +
     scale_x_continuous(breaks = 1:3, labels = paste0("+", 1:3, " day")) +
     labs(x = "Warning lead time", y = "AUC (95% CI)", subtitle = "Test years 2015–2025") +
-    theme_b40(mode) + theme(legend.position = "bottom")
+    theme_sh(mode) + theme(legend.position = "bottom")
   top <- head(ml_imp, 10) |> mutate(feature = factor(feature, rev(feature)),
                                     novel = feature %in% c("headroom", "closing", "days_to_limit", "danger_days7"))
   b <- ggplot(top, aes(importance, feature, fill = novel)) + geom_col(width = 0.7) +
     scale_fill_manual(values = c(`FALSE` = p$grey, `TRUE` = p$amber),
                       labels = c("Weather", "Physiology-informed"), name = NULL) +
     labs(x = "Permutation importance", y = NULL, subtitle = "Random forest, +1 day") +
-    theme_b40(mode) + theme(legend.position = "bottom")
+    theme_sh(mode) + theme(legend.position = "bottom")
   a + b + plot_layout(widths = c(1.2, 1))
 }, "fig_ml_models", w = 9.4, h = 5)
 
@@ -187,7 +187,7 @@ save_fig(function(mode) {
     scale_fill_manual(values = c(p$amber, p$blue), name = NULL) +
     scale_x_continuous(labels = percent, limits = c(0, 1)) +
     labs(x = NULL, y = NULL, subtitle = "Next-day alerts, 2015–2025") +
-    theme_b40(mode) + theme(legend.position = "bottom")
+    theme_sh(mode) + theme(legend.position = "bottom")
   b <- ggplot(filter(loco, model == "Random forest"),
               aes(y = reorder(city, AUC_seen))) +
     geom_segment(aes(x = AUC_unseen, xend = AUC_seen, yend = city), colour = p$grid, linewidth = 2) +
@@ -195,7 +195,7 @@ save_fig(function(mode) {
     geom_point(aes(x = AUC_unseen, colour = "Unseen city"), size = 3) +
     scale_colour_manual(values = c(`Seen in training` = p$amber, `Unseen city` = p$blue), name = NULL) +
     labs(x = "AUC (random forest, +1 day)", y = NULL, subtitle = "Leave-one-city-out transfer") +
-    theme_b40(mode) + theme(legend.position = "bottom")
+    theme_sh(mode) + theme(legend.position = "bottom")
   a + b + plot_layout(widths = c(1.15, 1))
 }, "fig_ml_hybrid_transfer", w = 9.4, h = 5)
 

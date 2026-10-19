@@ -65,13 +65,13 @@ save_fig(function(mode) {
     facet_wrap(~city, scales = "free") +
     scale_colour_manual(values = cols, breaks = names(cols)) +
     labs(x = "Daily max wet-bulb temperature in May (°C)", y = "Density") +
-    theme_b40(mode)
+    theme_sh(mode)
   q <- ggplot(may |> filter(city %in% show), aes(sample = twmax)) +
     stat_qq(colour = p$amber, size = 0.6, alpha = 0.6) +
     stat_qq_line(colour = p$ink, linewidth = 0.5) +
     facet_wrap(~city, scales = "free") +
     labs(x = "Theoretical Normal quantile", y = "Sample quantile (°C)") +
-    theme_b40(mode)
+    theme_sh(mode)
   h / q + plot_layout(heights = c(1.1, 1))
 }, "fig_distribution_fits", w = 8, h = 6)
 

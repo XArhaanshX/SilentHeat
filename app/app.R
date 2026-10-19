@@ -1,5 +1,5 @@
 # =============================================================================
-# Beyond 40°C - interactive dashboard (R Shiny)
+# SilentHeat - interactive dashboard (R Shiny)
 # Run from the project folder:   Rscript -e 'shiny::runApp("app")'
 # =============================================================================
 
@@ -7,7 +7,7 @@ library(shiny)
 library(bslib)
 
 root <- normalizePath(if (file.exists("R/00_setup.R")) "." else "..")
-Sys.setenv(B40_HOME = root)
+Sys.setenv(SILENTHEAT_HOME = root)
 source(file.path(root, "R", "00_setup.R"))
 
 d       <- readRDS(path("data", "processed", "daily.rds"))
@@ -34,7 +34,7 @@ stat_box <- function(title, value, sub = NULL, col = P$ink) {
 }
 
 ui <- page_navbar(
-  title = "BEYOND 40°C",
+  title = "SILENT HEAT",
   theme = theme_app,
   sidebar = sidebar(
     width = 260,
@@ -116,7 +116,7 @@ server <- function(input, output, session) {
       scale_x_continuous(limits = c(1, 366), breaks = c(1, 60, 121, 182, 244, 305),
                          labels = c("Jan", "Mar", "May", "Jul", "Sep", "Nov")) +
       scale_y_reverse(breaks = seq(1985, 2025, 5)) +
-      labs(x = NULL, y = NULL) + theme_b40("dark")
+      labs(x = NULL, y = NULL) + theme_sh("dark")
   }, bg = "black", res = 110)
 
   output$sens <- renderTable({
@@ -140,7 +140,7 @@ server <- function(input, output, session) {
       geom_col(fill = P$amber, width = 0.8)
     if (!is.null(fit)) g <- g + geom_line(aes(y = fitted(fit)), colour = P$ink, linewidth = 0.8)
     g + labs(x = NULL, y = "Danger days", subtitle = sub) +
-      theme_b40("dark")
+      theme_sh("dark")
   }, bg = "black", res = 110)
 
   output$mk <- renderTable({
@@ -163,7 +163,7 @@ server <- function(input, output, session) {
       geom_vline(xintercept = input$T, colour = P$blue, linetype = "22") +
       scale_x_log10(breaks = c(2, 5, 10, 25, 50, 100, 200)) +
       labs(x = "Return period (years)", y = "Annual max wet-bulb (°C)") +
-      theme_b40("dark")
+      theme_sh("dark")
   }, bg = "black", res = 110)
 
   output$rl_txt <- renderUI({
