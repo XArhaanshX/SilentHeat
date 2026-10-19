@@ -70,6 +70,7 @@ fit_predict <- function(train, test, use_city = TRUE) {
   lr <- suppressWarnings(glm(f_lr, binomial, train, control = glm.control(maxit = 100)))
   # probability tree: regression on 0/1 (Brier loss); a class tree on 2%
   # positives never beats the all-"no" root and prunes to nothing
+  set.seed(2026)                       # rpart's cross-validation folds are random
   tr <- rpart(reformulate(x, "y"), train, method = "anova",
               control = rpart.control(cp = 5e-4, minbucket = 40, xval = 5))
   tr <- prune(tr, cp = tr$cptable[which.min(tr$cptable[, "xerror"]), "CP"])
