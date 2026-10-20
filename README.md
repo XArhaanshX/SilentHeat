@@ -97,4 +97,4 @@ silent-heat/
 
 ---
 
-Arhaansh Jhingan · 25BCE0541 · VIT Vellore · Probability & Statistics Lab
+Arhaansh Jhingan
