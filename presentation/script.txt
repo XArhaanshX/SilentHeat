@@ -1,0 +1,217 @@
+SILENTHEAT - PRESENTATION SCRIPT
+Roughly 7-8 minutes. [Square brackets] = slide number or action. Say it in your own words; the numbers are what matter.
+
+==========================================================================
+1. WHAT IS OUR PROJECT                                   [Slides 1-5, ~1.5 min]
+==========================================================================
+
+[Slide 1 - Title]
+Good morning. Our project is called SilentHeat. It is about a blind spot in how India
+warns people about heat.
+
+[Slide 2 - Problem statement]
+India declares a heatwave using only the thermometer. On the plains it has to cross 40 °C,
+on the coast 37 °C, and it has to be at least 4.5 °C above normal. That declaration is what
+switches on the Heat Action Plans: water points, changed work hours, hospital readiness.
+
+But the human body cools itself by sweating, and sweat only works if it can evaporate.
+In humid air it can't. Scientists measure this with the wet-bulb temperature, which combines
+heat and humidity. Lab studies show healthy young adults start losing control of their body
+temperature at around 30-31 °C wet-bulb.
+
+So a 36 °C day at 60% humidity in Kolkata or Chennai is physically dangerous, but because
+it's below 40 °C, the official rule treats it as a normal day. No alert goes out.
+
+[Slide 4 - The gap]
+Most Heat Action Plans use these fixed national cut-offs and ignore humidity completely.
+
+[Slide 5 - Our project]
+So we asked six questions. How much dangerous humid heat does the rule miss? Is it getting
+worse? Are the extremes moving? Does it come in multi-day spells? Can a simple probability
+model warn a day ahead? And finally, can machine learning warn further ahead, even for
+cities it has never seen?
+
+Short answer: the official rule misses 96% of dangerous humid-heat days.
+
+==========================================================================
+2. NOVELTY                                               [Slides 20, 22, ~1.5 min]
+==========================================================================
+
+[Slide 20 - RQ6 set-up and what is new]
+Three things make this project new.
+
+One - we judge heat the way the body feels it, not the way the thermometer reads it.
+Our ML model gets physiology-based features: how far today's wet-bulb is from the 29 °C
+danger limit (we call it "headroom"), how fast that gap is closing, and roughly how many
+days are left before it's crossed. Headroom came out as the 5th most useful of 24 features.
+
+Two - we don't replace the IMD rule, we add to it. Our hybrid alert is simply:
+"IMD rule OR our ML model". We score it on how much of the blind spot it recovers.
+The IMD rule alone catches 1% of the danger days it can't see. The hybrid catches 45%.
+
+Three - it works in cities with no history. We hid each city completely from training,
+trained on the others, and predicted the hidden city. The model scored AUC 0.93 on cities
+it had never seen, almost the same as 0.94 on cities it was trained on. That matters because
+most Indian cities don't have decades of labelled heat records.
+
+[Slide 22 - Novelty results]
+And to be honest about the cost: about 64% of hybrid alerts are false alarms. That's fine
+for a cheap "drink water, rest in the afternoon" advisory, but not for something like
+closing schools.
+
+==========================================================================
+3. TECHNICAL IMPLEMENTATION (AND WHERE R IS USED)        [Slides 7-9, 12-21, ~2 min]
+==========================================================================
+
+[Slide 7 - Pipeline]
+The whole project is built in R, end to end. One command, "Rscript run_all.R", rebuilds
+everything from raw data in about a minute and a half.
+
+[Slide 8 - Data]
+Data: 45 years (1981-2025) of daily weather for 10 cities from ERA5 reanalysis, downloaded
+through the Open-Meteo API. That's 164,360 city-days.
+
+Where R is used, step by step:
+
+- DATA DOWNLOAD (R, jsonlite): R calls the weather API with retries and caches the files.
+
+- FEATURES (R, dplyr): R works out each day's normal temperature with harmonic regression,
+  applies the official IMD heatwave rule to every single day, and flags every day with
+  wet-bulb >= 29 °C.
+
+- RQ1, BLIND SPOT (R): miss rate with a Wilson 95% confidence interval, bootstrap and Bayesian
+  checks, plus chi-square, McNemar and Cohen's kappa. Result: 703 of 730 danger days missed,
+  96.3%, CI 94.7-97.4%. Kappa is about zero - the two definitions basically never agree.
+
+- RQ2, TRENDS (R, MASS): Mann-Kendall trend test and negative-binomial regression.
+  Danger days grow 1.54 times every decade.
+
+- RQ3, EXTREMES (R, written from scratch): we coded the GEV extreme-value likelihood
+  ourselves and checked it against the evd package. Chennai's once-in-50-years humid extreme
+  from 1985 now comes back roughly every 2.6 years.
+
+- RQ4, SPELLS (R): a two-state Markov chain plus Monte Carlo simulation. Danger arrives in
+  multi-day spells - in Chennai the chance of a 3-day spell each season went from 2% to 23%.
+
+- RQ5, WARNING (R, pROC): logistic regression trained on 1981-2014, tested on 2015-2025
+  which it never saw. AUC 0.92 against 0.61 for the IMD rule, and it's calibrated:
+  when it says 70%, danger follows about 70% of the time.
+
+- RQ6, MACHINE LEARNING (R, rpart + ranger): three baseline models - logistic regression,
+  a decision tree and a random forest - forecasting 1, 2 and 3 days ahead.
+  [Slide 21] The random forest wins at every lead time: AUC 0.95 one day ahead and still
+  0.89 three days ahead. A single decision tree is the weakest; averaging 400 trees fixes that.
+
+- REPORT (R, knitr): the written report pulls every number live from the result tables.
+
+- DASHBOARD (R Shiny): the interactive app I'll show you now.
+
+About 2,000 lines of R in total. The only non-R piece is a small Python script that builds
+these slides from R's output tables, so the slides always match the analysis.
+
+==========================================================================
+4. DASHBOARD DEMO                                        [Slide 23, then live, ~2 min]
+==========================================================================
+
+BEFORE YOU PRESENT: start the app and have it open in a browser tab.
+    Rscript -e 'shiny::runApp("app", port = 3838)'
+    then open http://127.0.0.1:3838
+If the live demo fails, slide 23 has a screenshot - just talk over that.
+
+--- Step 1: Blind spot tab ---
+ACTION: In the left sidebar, change City to "Kolkata".
+SAY: "Kolkata had 308 dangerous humid-heat days since 1981. The IMD rule missed 97% of them.
+That's about 6 to 7 silent danger days every year."
+ACTION: Point at the barcode chart.
+SAY: "Each line is a day. You can see the danger days and the heatwave days barely overlap."
+
+--- Step 2: Trends tab ---
+ACTION: Click "Trends".
+SAY: "Danger days per year, with the fitted trend. It's clearly rising, and the
+Mann-Kendall test below confirms it."
+
+--- Step 3: Extremes tab ---
+ACTION: Change City to "Chennai". Click "Extremes". Leave the slider at 50 years.
+SAY: "This is the extreme-value model. In 1985 a 50-year event in Chennai was about 29.4 °C
+wet-bulb. Because the climate has shifted, that same level now comes back every 2.6 years."
+ACTION (optional): Drag the slider to show other return periods.
+
+--- Step 4: Risk calculator (the main moment) ---
+ACTION: Click "Risk calculator". Change City to "Kolkata". Keep the defaults:
+    Date: 2026-05-20
+    Max temperature: 36
+    Min relative humidity: 60
+    Min temperature: 29
+    Yesterday's max wet-bulb: 28.5
+YOU SHOULD SEE (approximately):
+    IMD heatwave rule:        NO ALERT   (only about +1.4 °C above normal)
+    Humid-heat physiology:    Tw ≈ 29.9 °C - DANGER
+    P(danger day tomorrow):   about 92%
+    Heat Index:               about 48 °C
+SAY: "Same day, two verdicts. The official rule says no alert. The body physics says danger,
+and our model says there's about a 92% chance tomorrow is dangerous too.
+That's the blind spot, on one screen."
+
+ACTION: Now show the opposite case. Change City to "Lucknow" and enter:
+    Max temperature: 45
+    Min relative humidity: 12
+    Min temperature: 30
+    Yesterday's max wet-bulb: 22
+YOU SHOULD SEE (approximately):
+    IMD heatwave rule:        QUALIFIES
+    Humid-heat physiology:    Tw ≈ 22.9 °C - below danger threshold
+    P(danger day tomorrow):   about 0%
+SAY: "And here's dry heat: 45 °C but very dry. The IMD rule fires, and that's correct for
+dry heat. But it shows the rule and humid danger are measuring two different things.
+India needs both."
+
+(Honest note if asked: the calculator runs the RQ5 logistic model, because it's light and
+calibrated. The random forest results are in the analysis and slides.)
+
+==========================================================================
+5. CONCLUSION                                            [Slides 24-25, ~1 min]
+==========================================================================
+
+[Slide 24 - Conclusions]
+To sum up:
+- India's heatwave rule misses 96% of dangerous humid-heat days, in every city we studied.
+- Those days are growing about 54% per decade, and the extremes are shifting in 7 of 10 cities.
+- They come in multi-day spells, which is exactly when the body suffers most.
+- A simple calibrated model warns far better than the rule, and a random forest extends the
+  warning to three days ahead and to cities with no history at all.
+
+Our recommendations: add a humidity-aware trigger, like wet-bulb or Heat Index, to heatwave
+declarations; use local, probability-based thresholds instead of one national number; and
+prioritise Kolkata, Bhubaneswar, Visakhapatnam and Chennai, where silent days dominate.
+
+[Slide 25 - Limitations]
+Limitations, quickly: ERA5 is a 25 km grid, so it smooths local peaks - real station data would
+show even more danger days. And the physiological limits come from young healthy adults;
+older people and outdoor workers are at risk sooner. Next step is feeding the model the
+free 7-day weather forecast so it can issue real alerts ahead of time.
+
+[Slide 27 - Thank you]
+Thank you. Happy to take questions, or show anything else on the dashboard.
+
+==========================================================================
+LIKELY QUESTIONS - QUICK ANSWERS
+==========================================================================
+Q: Why wet-bulb 29 °C and not 35 °C?
+A: 35 °C is the old theoretical limit. Lab tests (Vecellio 2022) found real people fail at
+   30-31 °C, and 29 °C is a standard "dangerous" band used in research (Raymond 2020).
+
+Q: Why only 5 cities in the ML part?
+A: The other 5 (Delhi, Ahmedabad, Nagpur, Mumbai, Vellore) almost never reach 29 °C wet-bulb
+   on the ERA5 grid, so there is nothing to predict there.
+
+Q: Isn't 64% false alarms too high?
+A: For a low-cost advisory it's acceptable - missing a real danger day costs far more than
+   an unnecessary "drink water" message. And the threshold can be tuned for fewer alarms.
+
+Q: How do you know you're not overfitting?
+A: Everything is tested on 2015-2025, years the models never saw during training, and the
+   alert thresholds were picked on 2010-2014 only.
+
+Q: Why use ERA5 and not IMD station data?
+A: IMD station data isn't freely available at this scale. ERA5 actually makes our numbers
+   conservative - station data would show more danger days, not fewer.
