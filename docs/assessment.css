@@ -1,0 +1,38 @@
+/* Shared print style for the assessment documents (A4, matches the project brief) */
+@page { size: A4; margin: 16mm 19mm 15mm 19mm; }
+html, body { margin: 0; background: #fff; }
+body { font-family: "Noto Serif", "Liberation Serif", Georgia, serif; color: #1b1b1b;
+       font-size: 10.5pt; line-height: 1.5; }
+.kicker { font-family: Poppins, sans-serif; font-size: 8.5pt; letter-spacing: .14em;
+          text-transform: uppercase; color: #8a6a45; margin: 0 0 4mm; }
+h1 { font-family: Poppins, sans-serif; font-weight: 300; font-size: 28pt; line-height: 1.05;
+     margin: 0 0 2.5mm; }
+.sub { font-family: Poppins, sans-serif; font-weight: 300; font-size: 13pt; color: #444;
+       margin: 0 0 5mm; line-height: 1.3; }
+.by { font-family: Poppins, sans-serif; font-size: 9pt; color: #555; padding-bottom: 4mm;
+      border-bottom: 1px solid #d9d2c8; margin-bottom: 6mm; line-height: 1.6; }
+h2 { font-family: Poppins, sans-serif; font-weight: 500; font-size: 9pt; letter-spacing: .12em;
+     text-transform: uppercase; color: #8a6a45; margin: 6mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 3mm; text-align: justify; hyphens: auto; }
+.lead { font-size: 12pt; line-height: 1.45; }
+.num { font-family: Poppins, sans-serif; font-weight: 500; }
+ul { margin: 0 0 3mm; padding-left: 5mm; }
+li { margin-bottom: 1.2mm; }
+code { font-family: "DejaVu Sans Mono", monospace; font-size: 8.8pt; background: #f4f1ec;
+       padding: 0 1.2mm; border-radius: 2px; }
+pre { font-family: "DejaVu Sans Mono", monospace; font-size: 8.8pt; background: #f4f1ec;
+      padding: 3mm 4mm; border-radius: 3px; margin: 0 0 3mm; }
+table { width: 100%; border-collapse: collapse; margin: 1mm 0 4mm; font-size: 9.2pt;
+        line-height: 1.4; break-inside: auto; }
+th { font-family: Poppins, sans-serif; font-weight: 500; font-size: 8pt; letter-spacing: .06em;
+     text-transform: uppercase; color: #8a6a45; text-align: left; padding: 1.5mm 2mm;
+     border-bottom: 1.2px solid #8a6a45; }
+td { padding: 1.6mm 2mm; border-bottom: 1px solid #e6e0d6; vertical-align: top; }
+tr { break-inside: avoid; }
+figure { margin: 2mm 0 5mm; break-inside: avoid; }
+figure img { width: 100%; display: block; }
+figcaption { font-family: Poppins, sans-serif; font-size: 8.5pt; color: #666; margin-top: 1.5mm; }
+.keywords { font-family: Poppins, sans-serif; font-size: 9pt; color: #555; margin-top: 4mm; }
+.foot { margin-top: 5mm; padding-top: 3mm; border-top: 1px solid #e6e0d6;
+        font-family: Poppins, sans-serif; font-size: 8pt; color: #888; }
+.pb { break-before: page; }
