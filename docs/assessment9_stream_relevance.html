@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>SilentHeat - Relevance to CSE</title>
+<link rel="stylesheet" href="assessment.css"></head><body>
+
+<p class="kicker">Probability &amp; Statistics Lab &nbsp;·&nbsp; Assessment 9 &nbsp;·&nbsp; Relevance to our stream</p>
+<h1>Why SilentHeat matters to Computer Science</h1>
+<p class="sub">B.Tech Computer Science and Engineering (SCOPE)</p>
+<div class="by">Arhaansh Jhingan (25BCE0541) &nbsp;·&nbsp; Tvesha Rathi (25BCE2001) &nbsp;·&nbsp; Laksh Raja (25BCE0161) &nbsp;·&nbsp; VIT Vellore</div>
+
+<p class="lead">SilentHeat looks like a climate project, but most of the work is computer science: collecting data from an API, building a reproducible pipeline, implementing algorithms, training and validating machine-learning models, and shipping an interactive application. Probability and statistics are the theory underneath all of it.</p>
+
+<h2>Where our stream shows up in the project</h2>
+<table>
+<tr><th style="width:25%">CSE area</th><th>What we did in SilentHeat</th></tr>
+<tr><td>Data engineering &amp; APIs</td><td>Pulled 45 years of weather for 10 cities from the Open-Meteo REST API, parsed JSON, added retries and a local cache, then cleaned and joined 164,360 records into one feature table.</td></tr>
+<tr><td>Algorithms &amp; numerical computing</td><td>Wrote maximum-likelihood estimation for the GEV distribution from scratch and solved it with Nelder–Mead followed by BFGS optimisation. Also implemented the pairwise Mann–Kendall test, Monte Carlo simulation and bootstrap resampling, and checked our GEV code against a published package.</td></tr>
+<tr><td>Machine learning</td><td>Feature engineering (lags, rolling windows, physiology-based features), logistic regression, decision trees and random forests. A strict temporal train/validation/test split, threshold tuning on validation data only, leave-one-city-out generalisation, and evaluation with AUC, PR-AUC, Brier score and calibration.</td></tr>
+<tr><td>Software engineering</td><td>A modular pipeline of 12 scripts with a single entry point (<code>Rscript run_all.R</code>), fixed random seeds for reproducible results, a dependency installer, and Git/GitHub version control with small, feature-by-feature commits. Running the full pipeline exposed a function-masking bug and a non-deterministic model, and we fixed both.</td></tr>
+<tr><td>Web development &amp; UI</td><td>An interactive R Shiny dashboard built on reactive programming. A user picks a city and a day and sees the official verdict and our model's verdict side by side.</td></tr>
+<tr><td>Data visualisation</td><td>Sixteen figures in ggplot2, each produced in a dark theme for slides and a light theme for the report, with a colour-blind-safe palette.</td></tr>
+<tr><td>Automation</td><td>The written report and the slide deck are generated from the pipeline's output tables, so every number stays in sync with the code.</td></tr>
+</table>
+
+<h2>Why probability and statistics are core CS skills</h2>
+<ul>
+<li><b>Machine learning is applied probability.</b> Logistic regression is a likelihood model, and random forests rely on bootstrap sampling. Calibration and Brier scores ask whether a model's probabilities can be trusted.</li>
+<li><b>Hypothesis testing is A/B testing.</b> The chi-square, McNemar and permutation tests we used are the same tools tech companies use to decide whether a feature change really helped.</li>
+<li><b>Markov chains are everywhere in CS.</b> They underlie PageRank, language models, queueing systems and reinforcement learning. We used one to model day-to-day persistence of danger.</li>
+<li><b>Extreme-value theory is reliability engineering.</b> The same GEV maths that gives Chennai's 50-year humid extreme is used to estimate p99 latency, server load peaks and failure rates.</li>
+<li><b>Monte Carlo and the bootstrap</b> are general computational techniques, also found in randomised algorithms, graphics and simulation.</li>
+</ul>
+
+<h2>Computing for social good</h2>
+<p>Heat is one of the deadliest climate hazards in India, and the people most exposed (outdoor workers, the elderly, people without cooling) depend on public warnings. Our hybrid alert keeps the government's rule and adds an ML layer, recovering 45% of the dangerous days the rule misses. Because the model also works in cities it was never trained on, it could scale to districts that lack long weather records. This is the kind of system CSE graduates build in public-health tech, climate-tech and government data teams.</p>
+
+<h2>Skills we gained</h2>
+<ul>
+<li>Turning a vague real-world question into measurable research questions and testable hypotheses</li>
+<li>Writing statistical algorithms from first principles instead of treating libraries as black boxes</li>
+<li>Honest model evaluation: unseen test years, no data leakage, and reporting the false-alarm cost</li>
+<li>Building, debugging and version-controlling a reproducible end-to-end data project</li>
+<li>Communicating technical results through a report, a dashboard and a presentation</li>
+</ul>
+
+<p class="foot">SilentHeat · Probability &amp; Statistics Lab · github.com/XArhaanshX/SilentHeat</p>
+</body></html>
