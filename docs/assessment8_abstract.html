@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>SilentHeat - Abstract</title>
+<link rel="stylesheet" href="assessment.css"></head><body>
+
+<p class="kicker">Probability &amp; Statistics Lab &nbsp;·&nbsp; Assessment 8 &nbsp;·&nbsp; Abstract</p>
+<h1>SilentHeat</h1>
+<p class="sub">Quantifying and forecasting the humid-heat blind spot in India's heatwave warnings</p>
+<div class="by">Arhaansh Jhingan (25BCE0541) &nbsp;·&nbsp; Tvesha Rathi (25BCE2001) &nbsp;·&nbsp; Laksh Raja (25BCE0161)<br>
+School of Computer Science and Engineering (SCOPE) &nbsp;·&nbsp; VIT Vellore</div>
+
+<h2>Abstract</h2>
+
+<p>India declares a heatwave on dry-bulb temperature alone: 40&nbsp;°C on the plains or 37&nbsp;°C on the coast, plus a 4.5&nbsp;°C departure from normal. That declaration activates Heat Action Plans. Yet the body cools by evaporating sweat, which humid air prevents, and laboratory studies place the survivability limit for healthy young adults at a wet-bulb temperature of only 30–31&nbsp;°C. Humid days that are physiologically dangerous but stay below the thermometer threshold therefore never trigger an alert. This project measures that blind spot, tests whether it is growing, and builds models to close it.</p>
+
+<p>We assembled 45 years (1981–2025) of daily ERA5 reanalysis for ten Indian cities, a total of <span class="num">164,360</span> city-days. We applied the official IMD rule to every day and flagged every day whose maximum wet-bulb temperature reached 29&nbsp;°C. The whole study is written in R as a one-command, reproducible pipeline. Of 730 dangerous humid-heat days, <span class="num">703 (96.3%; Wilson 95% CI 94.7–97.4%)</span> were never declared heatwaves, and Cohen's κ between the two definitions is close to zero. A Mann–Kendall test and a negative-binomial regression show such days growing <span class="num">×1.54 per decade</span>. A generalised extreme-value model, coded from scratch, finds a significant upward shift in 7 of 10 cities: Chennai's 1-in-50-year humid extreme of 1985 now recurs every 2.6 years. A two-state Markov chain shows that danger arrives in persistent multi-day spells.</p>
+
+<p>For early warning, a logistic model trained on 1981–2014 and tested on the unseen years 2015–2025 reaches an AUC of <span class="num">0.92</span>, against 0.61 for the IMD rule, with calibrated probabilities. Baseline machine-learning models extend this: a random forest reaches AUC <span class="num">0.95</span> one day ahead and 0.89 three days ahead. Our novelty is threefold: physiology-informed features (headroom to the 29&nbsp;°C limit and its closing speed); a hybrid alert that keeps the IMD rule and adds an ML layer, recovering <span class="num">45%</span> of the blind spot against 1% for the rule alone; and leave-one-city-out validation showing that the model works in cities with no training history (AUC 0.93 vs 0.94). Results are delivered through an R Shiny dashboard. We recommend adding a humidity-aware trigger and local, probabilistic thresholds to India's heatwave declarations.</p>
+
+<p class="keywords"><b>Keywords:</b> wet-bulb temperature · heatwave early warning · extreme value theory · Markov chains · hypothesis testing · random forest · R</p>
+
+<p class="foot">Data: ERA5 reanalysis (Hersbach et al., 2020) via Open-Meteo, CC BY 4.0. Physiological threshold: Vecellio et al., <i>Journal of Applied Physiology</i>, 2022. Code: github.com/XArhaanshX/SilentHeat</p>
+</body></html>
