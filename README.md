@@ -51,7 +51,7 @@ uv run --with python-pptx --with pillow python presentation/build_deck.py   # re
 ## Project structure
 
 ```
-silent-heat/
+SilentHeat/
 ├── run_all.R                 one command: rebuilds every table, figure and the report
 ├── install.R                 R package dependencies
 ├── R/
