@@ -256,8 +256,9 @@ text(s, 1.42, 1.25, 7.6, 3.3, ["SILENT", "HEAT"], size=100, spacing=0.92, name="
 text(s, 1.47, 4.55, 6.8, 1.4,
      ["QUANTIFYING THE HUMID-HEAT BLIND SPOT", "IN INDIA'S HEATWAVE WARNINGS"],
      size=21, spacing=1.15)
-text(s, 7.6, 1.25, 5.0, 0.8, ["ARHAANSH JHINGAN 25BCE0541 (SCOPE)"], size=15,
-     align=PP_ALIGN.RIGHT)
+text(s, 7.6, 1.25, 5.0, 1.3, ["ARHAANSH JHINGAN 25BCE0541 (SCOPE)",
+                              "TVESHA RATHI 25BCE2001", "LAKSH RAJA 25BCE0161"], size=15,
+     align=PP_ALIGN.RIGHT, spacing=1.25)
 text(s, 7.6, 5.55, 5.0, 0.8, ["PROBABILITY & STATISTICS LAB", "[BUILT END-TO-END IN R]"],
      size=17, align=PP_ALIGN.RIGHT, spacing=1.25)
 
@@ -871,6 +872,6 @@ text(s, 1.5, 2.9, 10.33, 1.6, "THANK YOU", size=64, align=PP_ALIGN.CENTER,
      anchor=MSO_ANCHOR.MIDDLE, name="Title")
 
 prs.core_properties.title = "SilentHeat: the humid-heat blind spot in India's heatwave warnings"
-prs.core_properties.author = "Arhaansh Jhingan"
+prs.core_properties.author = "Arhaansh Jhingan, Tvesha Rathi, Laksh Raja"
 prs.save(OUT)
 print("saved", OUT, "with", len(prs.slides), "slides")
